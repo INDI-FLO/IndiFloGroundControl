@@ -383,8 +383,8 @@ ApplicationWindow {
                             height:             toolSelectDialog._toolButtonHeight
                             Layout.fillWidth:   true
                             text:               qsTr("Application Settings")
-                            imageResource:      "/res/QGCLogoFull.svg"
-                            imageColor:         "transparent"
+                            imageResource:      "/res/appSettings.svg"
+                            imageColor:         "white"
                             visible:            !QGroundControl.corePlugin.options.combineSettingsAndSetup
                             onClicked: {
                                 if (mainWindow.allowViewSwitch()) {
@@ -392,6 +392,28 @@ ApplicationWindow {
                                     mainWindow.showSettingsTool()
                                 }
                             }
+                        }
+
+                        SubMenuButton {
+                            id: aboutButton
+                            height: toolSelectDialog._toolButtonHeight
+                            Layout.fillWidth: true
+                            text: qsTr("About IndiFlo")
+                            imageResource: "/res/about.svg"
+                            onClicked: {
+                            mainWindow.closeIndicatorDrawer()
+                            mainWindow.showMessageDialog(
+                         qsTr("About IndiFlo"),
+                         "IndiFlo Ground Control Station<br><br>" +
+                         "Version: 5.0<br><br>" +
+                         "This Ground Control Station is designed for UAV mission
+                          planning, " +
+                         "flight monitoring, telemetry visualization and autonomous
+                         operations.<br><br>" +
+                         "Website: www.indiflo.com<br><br>" +
+                         "Products: https://www.indiflo.com/productpage.html"
+                         )
+                         }
                         }
 
                         SubMenuButton {

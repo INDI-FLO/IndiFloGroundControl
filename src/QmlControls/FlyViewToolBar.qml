@@ -46,13 +46,40 @@ Rectangle {
     }
 
     Rectangle {
-        anchors.fill: viewButtonRow
-        
+        anchors.fill: parent
+
         gradient: Gradient {
             orientation: Gradient.Horizontal
-            GradientStop { position: 0;                                     color: _mainStatusBGColor }
-            GradientStop { position: currentButton.x + currentButton.width; color: _mainStatusBGColor }
-            GradientStop { position: 1;                                     color: _root.color }
+
+            // Light Blue (behind the logo)
+            GradientStop {
+                position: 0.00
+                color: "#7EC8FF"
+            }
+
+            // Slightly darker blue
+            GradientStop {
+                position: 0.20
+                color: "#4EA3E5"
+            }
+
+            // IndiFlo Blue
+            GradientStop {
+                position: 0.45
+                color: "#1E5FA8"
+            }
+
+            // Dark Navy
+            GradientStop {
+                position: 0.75
+                color: "#0B2E59"
+            }
+
+            // Black
+            GradientStop {
+                position: 1.00
+                color: "#000000"
+            }
         }
     }
 
@@ -66,7 +93,7 @@ Rectangle {
         QGCToolBarButton {
             id:                     currentButton
             Layout.preferredHeight: viewButtonRow.height
-            icon.source:            "/res/QGCLogoFull.svg"
+            icon.source:            "/res/indifloLogo.svg"
             logo:                   true
             onClicked:              mainWindow.showToolSelectDialog()
         }
