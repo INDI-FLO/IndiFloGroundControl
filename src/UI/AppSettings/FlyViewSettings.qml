@@ -29,6 +29,7 @@ SettingsPage {
     property Fact   _virtualJoystick:                       _settingsManager.appSettings.virtualJoystick
     property Fact   _virtualJoystickAutoCenterThrottle:     _settingsManager.appSettings.virtualJoystickAutoCenterThrottle
     property Fact   _virtualJoystickLeftHandedMode:         _settingsManager.appSettings.virtualJoystickLeftHandedMode
+    property Fact   _showGimbalControl:                     _flyViewSettings.showGimbalControl
     property Fact   _enableMultiVehiclePanel:               _settingsManager.appSettings.enableMultiVehiclePanel
     property Fact   _showAdditionalIndicatorsCompass:       _flyViewSettings.showAdditionalIndicatorsCompass
     property Fact   _lockNoseUpCompass:                     _flyViewSettings.lockNoseUpCompass
@@ -335,4 +336,15 @@ SettingsPage {
             visible:            _viewer3DAltitudeBias.visible
         }
     }
+
+SettingsGroupLayout {
+    Layout.fillWidth: true
+    heading: qsTr("Gimbal Control")
+
+    FactCheckBoxSlider {
+        Layout.fillWidth: true
+        text: qsTr("Show Gimbal Controls")
+        fact: _showGimbalControl
+    }
+}
 }

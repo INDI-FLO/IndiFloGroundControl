@@ -556,6 +556,20 @@ void GimbalController::toggleGimbalRetracted(bool set)
     sendPitchYawFlags(flags);
 }
 
+void GimbalController::setManualRates(float pitchRate, float yawRate)
+{
+    if (!_activeGimbal) {
+        qCDebug(GimbalControllerLog)
+            << "setManualRates: no active gimbal";
+        return;
+    }
+
+    _activeGimbal->setPitchRate(pitchRate);
+    _activeGimbal->setYawRate(yawRate);
+
+    sendRate();
+}
+
 void GimbalController::sendRate()
 {
     if (!_tryGetGimbalControl()) {

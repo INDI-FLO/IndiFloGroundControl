@@ -401,6 +401,15 @@ void Vehicle::deleteCameraManager()
     }
 }
 
+void Vehicle::sendGimbalCommand(float pan, float tilt)
+{
+    qDebug() << "IGC Gimbal Command:"
+             << "Pan:" << pan
+             << "Tilt:" << tilt;
+
+    // Gimbal MAVLink command implementation
+}
+
 void Vehicle::deleteGimbalController()
 {
     if (_gimbalController) {

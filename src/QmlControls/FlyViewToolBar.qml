@@ -54,7 +54,7 @@ Rectangle {
             // Light Blue (behind the logo)
             GradientStop {
                 position: 0.00
-                color: "#7EC8FF"
+            color: "#102F4D"
             }
 
             // Slightly darker blue
@@ -102,7 +102,7 @@ Rectangle {
             id: mainStatusIndicator
             Layout.preferredHeight: viewButtonRow.height
         }
-
+        
         QGCButton {
             id:                 disconnectButton
             text:               qsTr("Disconnect")

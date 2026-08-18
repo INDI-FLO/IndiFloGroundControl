@@ -10,6 +10,7 @@
 import QGroundControl.FlightDisplay
 
 GuidedToolStripAction {
+
     text:       _guidedController.pauseTitle
     iconSource: "/res/pause-mission.svg"
     visible:    _guidedController.showPause

@@ -136,6 +136,20 @@ Item {
             utmspActTrigger:        utmspSendActTrigger
             isViewer3DOpen:         viewer3DWindow.isOpen
         }
+        
+        GimbalControl {
+    id: gimbalControl
+
+    visible: QGroundControl.settingsManager.flyViewSettings.showGimbalControl.rawValue
+
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+
+    anchors.rightMargin: ScreenTools.defaultFontPixelWidth * 2
+    anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 10
+
+    z: QGroundControl.zOrderWidgets + 10
+}
 
         FlyViewCustomLayer {
             id:                 customOverlay
