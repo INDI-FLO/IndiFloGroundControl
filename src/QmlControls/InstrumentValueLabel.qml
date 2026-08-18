@@ -25,7 +25,7 @@ ColumnLayout {
     property real   _tightDefaultFontHeight:    ScreenTools.defaultFontPixelHeight - _doubleDescent
     property var    _rgFontSizeTightHeights:    [ _tightDefaultFontHeight * _rgFontSizeRatios[0] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[1] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[2] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[3] + 2 ]
     property real   _tightHeight:               _rgFontSizeTightHeights[instrumentValueData.factValueGrid.fontSize]
-    property bool   _iconVisible:               instrumentValueData.rangeType === InstrumentValueData.IconSelectRange || instrumentValueData.icon
+    property bool   _iconVisible:               false
     property var    _color:                     instrumentValueData.isValidColor(instrumentValueData.currentColor) ? instrumentValueData.currentColor : qgcPal.text
 
     QGCPalette { id: qgcPal; colorGroupEnabled: enabled }
@@ -67,9 +67,16 @@ ColumnLayout {
     QGCLabel {
         Layout.alignment:   Qt.AlignVCenter
         height:             _tightHeight
-        font.pointSize:     ScreenTools.smallFontPointSize
-        text:               instrumentValueData.text
-        color:              _color
+font.bold: true
+font.pointSize: ScreenTools.defaultFontPointSize
+text: instrumentValueData.text === "Vertical Speed" ? "VS" :
+      instrumentValueData.text === "Horizontal Speed" ? "HS" :
+      instrumentValueData.text === "Altitude Relative" ? "ALT" :
+      instrumentValueData.text === "Distance To Home" ? "DIST" :
+      instrumentValueData.text === "Flight Time" ? "TIME" :
+      instrumentValueData.text === "Heading" ? "HDG" :
+      instrumentValueData.text
+        color:              "white"
         opacity:            instrumentValueData.currentOpacity
         visible:            !_iconVisible
     }

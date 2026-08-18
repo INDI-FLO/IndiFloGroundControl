@@ -27,15 +27,20 @@ Item {
     property alias settingsGroup:           factValueGrid.settingsGroup
     property alias specificVehicleForCard:  factValueGrid.specificVehicleForCard
 
-    Rectangle {
-        id:         backgroundRect
-        width:      control.width + extraWidth
-        height:     control.height
-        color:      qgcPal.window
-        radius:     ScreenTools.defaultFontPixelWidth / 2
-        opacity:    0.75
-    }
+Rectangle {
+    id: backgroundRect
 
+    width: control.width + extraWidth
+    height: control.height
+
+    color: "#0B0F14"
+    opacity: 0.92
+
+    radius: 14
+
+    border.width: 1
+    border.color: "#50FFFFFF"
+}
     ColumnLayout {
         id:                 mainLayout
         anchors.margins:    _toolsMargin

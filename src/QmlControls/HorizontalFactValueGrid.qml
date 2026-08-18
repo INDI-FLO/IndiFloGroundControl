@@ -37,23 +37,43 @@ T.HorizontalFactValueGrid {
 
     ColumnLayout {
         id:         topLayout
-        spacing:    ScreenTools.defaultFontPixelWidth
+        spacing:    0
 
         RowLayout {
             spacing: parent.spacing
             RowLayout {
                 id:         labelValueColumnLayout
-                spacing:    ScreenTools.defaultFontPixelWidth * 1.25
+                spacing:    8
 
                 Repeater {
                     model: _root.columns
 
-                    GridLayout {
-                        rows:           object.count
-                        columns:        2
-                        rowSpacing:     0
-                        columnSpacing:  ScreenTools.defaultFontPixelWidth / 4
-                        flow:           GridLayout.TopToBottom
+Rectangle {
+    id: telemetryCard
+
+    radius: 10
+    color: "#111820"
+
+    border.width: 1
+    border.color: "#35FFFFFF"
+
+    Layout.fillHeight: true
+
+    implicitWidth: telemetryGrid.implicitWidth + 20
+    implicitHeight: telemetryGrid.implicitHeight + 14
+
+    GridLayout {
+        id: telemetryGrid
+
+        anchors.centerIn: parent
+
+        rows: object.count
+        columns: 2
+
+        rowSpacing: 2
+        columnSpacing: 8
+
+        flow: GridLayout.TopToBottom
 
                         Repeater {
                             id:     labelRepeater
@@ -108,7 +128,8 @@ T.HorizontalFactValueGrid {
                         }
                     }
                 }
-            }
+      }     
+       }
 
             ColumnLayout {
                 spacing: 1
