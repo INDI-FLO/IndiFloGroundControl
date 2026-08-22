@@ -1,238 +1,764 @@
-/****************************************************************************
- *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
- *
- * QGroundControl is licensed according to the terms in the file
- * COPYING.md in the root of the source code directory.
- *
- ****************************************************************************/
-
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import QtQuick.Dialogs
 
 import QGroundControl
 import QGroundControl.Controls
 import QGroundControl.Palette
 import QGroundControl.MultiVehicleManager
 import QGroundControl.ScreenTools
-import QGroundControl.Controllers
 
 Rectangle {
-    id:     _root
-    width:  parent.width
-    height: ScreenTools.toolbarHeight
-    color:  qgcPal.toolbarBackground
+    id: root
 
-    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
-    property bool   _communicationLost: _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
-    property color  _mainStatusBGColor: qgcPal.brandingPurple
+    width: parent.width
 
-    function dropMainStatusIndicatorTool() {
-        mainStatusIndicator.dropMainStatusIndicator();
+    // =========================================================
+    // COMPACT TOOLBAR
+    // =========================================================
+
+    height: ScreenTools.toolbarHeight * 0.78
+
+    color: "transparent"
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    QGCPalette {
+        id: qgcPal
     }
 
-    QGCPalette { id: qgcPal }
+    // =========================================================
+    // VEHICLE STATUS
+    // =========================================================
 
-    /// Bottom single pixel divider
-    Rectangle {
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        anchors.bottom: parent.bottom
-        height:         1
-        color:          "black"
-        visible:        qgcPal.globalTheme === QGCPalette.Light
-    }
+    property bool vehicleConnected:
+        _activeVehicle !== null
+
+    property bool vehicleFlying:
+        _activeVehicle ? _activeVehicle.flying : false
+
+    property bool vehicleArmed:
+        _activeVehicle ? _activeVehicle.armed : false
+
+    property string flightStatusText:
+        !vehicleConnected
+            ? "DISCONNECTED"
+            : vehicleFlying
+                ? "FLYING"
+                : vehicleArmed
+                    ? "ARMED"
+                    : "READY TO FLY"
+
+    property string flightSubStatus:
+        !vehicleConnected
+            ? "NO VEHICLE"
+            : vehicleFlying
+                ? "IN FLIGHT"
+                : vehicleArmed
+                    ? "ARMED"
+                    : "GPS"
+
+    // =========================================================
+    // REAL GPS DATA
+    // =========================================================
+
+    property int satelliteCount:
+        _activeVehicle && _activeVehicle.gps
+            ? _activeVehicle.gps.count.value
+            : 0
+
+    property real gpsHdop:
+        _activeVehicle && _activeVehicle.gps
+            ? _activeVehicle.gps.hdop.value
+            : NaN
+
+    property bool gpsAvailable:
+        _activeVehicle &&
+        _activeVehicle.gps &&
+        satelliteCount > 0
+
+    // =========================================================
+    // REAL BATTERY DATA
+    // =========================================================
+
+    property var activeBattery:
+        _activeVehicle &&
+        _activeVehicle.batteries &&
+        _activeVehicle.batteries.count > 0
+            ? _activeVehicle.batteries.get(0)
+            : null
+
+    property real batteryPercent:
+        activeBattery &&
+        !isNaN(activeBattery.percentRemaining.rawValue)
+            ? activeBattery.percentRemaining.rawValue
+            : NaN
+
+    property bool batteryAvailable:
+        activeBattery &&
+        !isNaN(activeBattery.percentRemaining.rawValue)
+
+    // =========================================================
+    // STATUS COLOR
+    // =========================================================
+
+    property color statusColor:
+        !vehicleConnected
+            ? "#58616B"
+            : vehicleFlying
+                ? "#D88920"
+                : vehicleArmed
+                    ? "#C8871F"
+                    : "#32934A"
+
+    // =========================================================
+    // MAIN GLASS BACKGROUND
+    // =========================================================
 
     Rectangle {
         anchors.fill: parent
 
+        radius: 8
+
+        color: "#AA071B2D"
+
+        border.width: 1
+        border.color: "#55D8F3FF"
+
         gradient: Gradient {
-            orientation: Gradient.Horizontal
 
-            // Light Blue (behind the logo)
             GradientStop {
-                position: 0.00
-            color: "#102F4D"
+                position: 0.0
+                color: "#B51D344A"
             }
 
-            // Slightly darker blue
-            GradientStop {
-                position: 0.20
-                color: "#4EA3E5"
-            }
-
-            // IndiFlo Blue
             GradientStop {
                 position: 0.45
-                color: "#1E5FA8"
+                color: "#99314F68"
             }
 
-            // Dark Navy
             GradientStop {
-                position: 0.75
-                color: "#0B2E59"
-            }
-
-            // Black
-            GradientStop {
-                position: 1.00
-                color: "#000000"
+                position: 1.0
+                color: "#B5091B2D"
             }
         }
     }
+
+    // =========================================================
+    // GLASS TOP HIGHLIGHT
+    // =========================================================
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+
+        height: 1
+
+        color: "#CCFFFFFF"
+        opacity: 0.35
+
+        radius: 1
+    }
+
+    // =========================================================
+    // MAIN ROW
+    // =========================================================
 
     RowLayout {
-        id:                     viewButtonRow
-        anchors.bottomMargin:   1
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        spacing:                ScreenTools.defaultFontPixelWidth / 2
 
-        QGCToolBarButton {
-            id:                     currentButton
-            Layout.preferredHeight: viewButtonRow.height
-            icon.source:            "/res/indifloLogo.svg"
-            logo:                   true
-            onClicked:              mainWindow.showToolSelectDialog()
-        }
+        anchors.fill: parent
 
-        MainStatusIndicator {
-            id: mainStatusIndicator
-            Layout.preferredHeight: viewButtonRow.height
-        }
-        
-        QGCButton {
-            id:                 disconnectButton
-            text:               qsTr("Disconnect")
-            onClicked:          _activeVehicle.closeVehicle()
-            visible:            _activeVehicle && _communicationLost
-        }
-    }
+        anchors.leftMargin: 4
+        anchors.rightMargin: 4
+        anchors.topMargin: 3
+        anchors.bottomMargin: 3
 
-    QGCFlickable {
-        id:                     toolsFlickable
-        anchors.leftMargin:     ScreenTools.defaultFontPixelWidth * ScreenTools.largeFontPointRatio * 1.5
-        anchors.rightMargin:    ScreenTools.defaultFontPixelWidth / 2
-        anchors.left:           viewButtonRow.right
-        anchors.bottomMargin:   1
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        anchors.right:          parent.right
-        contentWidth:           toolIndicators.width
-        flickableDirection:     Flickable.HorizontalFlick
+        spacing: 3
 
-        FlyViewToolBarIndicators { id: toolIndicators }
-    }
-
-    //-------------------------------------------------------------------------
-    //-- Branding Logo
-    Image {
-        anchors.right:          parent.right
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        anchors.margins:        ScreenTools.defaultFontPixelHeight * 0.66
-        visible:                _activeVehicle && !_communicationLost && x > (toolsFlickable.x + toolsFlickable.contentWidth + ScreenTools.defaultFontPixelWidth)
-        fillMode:               Image.PreserveAspectFit
-        source:                 _outdoorPalette ? _brandImageOutdoor : _brandImageIndoor
-        mipmap:                 true
-
-        property bool   _outdoorPalette:        qgcPal.globalTheme === QGCPalette.Light
-        property bool   _corePluginBranding:    QGroundControl.corePlugin.brandImageIndoor.length != 0
-        property string _userBrandImageIndoor:  QGroundControl.settingsManager.brandImageSettings.userBrandImageIndoor.value
-        property string _userBrandImageOutdoor: QGroundControl.settingsManager.brandImageSettings.userBrandImageOutdoor.value
-        property bool   _userBrandingIndoor:    QGroundControl.settingsManager.brandImageSettings.visible && _userBrandImageIndoor.length != 0
-        property bool   _userBrandingOutdoor:   QGroundControl.settingsManager.brandImageSettings.visible && _userBrandImageOutdoor.length != 0
-        property string _brandImageIndoor:      brandImageIndoor()
-        property string _brandImageOutdoor:     brandImageOutdoor()
-
-        function brandImageIndoor() {
-            if (_userBrandingIndoor) {
-                return _userBrandImageIndoor
-            } else {
-                if (_userBrandingOutdoor) {
-                    return _userBrandImageOutdoor
-                } else {
-                    if (_corePluginBranding) {
-                        return QGroundControl.corePlugin.brandImageIndoor
-                    } else {
-                        return _activeVehicle ? _activeVehicle.brandImageIndoor : ""
-                    }
-                }
-            }
-        }
-
-        function brandImageOutdoor() {
-            if (_userBrandingOutdoor) {
-                return _userBrandImageOutdoor
-            } else {
-                if (_userBrandingIndoor) {
-                    return _userBrandImageIndoor
-                } else {
-                    if (_corePluginBranding) {
-                        return QGroundControl.corePlugin.brandImageOutdoor
-                    } else {
-                        return _activeVehicle ? _activeVehicle.brandImageOutdoor : ""
-                    }
-                }
-            }
-        }
-    }
-
-    // Small parameter download progress bar
-    Rectangle {
-        anchors.bottom: parent.bottom
-        height:         _root.height * 0.05
-        width:          _activeVehicle ? _activeVehicle.loadProgress * parent.width : 0
-        color:          qgcPal.colorGreen
-        visible:        !largeProgressBar.visible
-    }
-
-    // Large parameter download progress bar
-    Rectangle {
-        id:             largeProgressBar
-        anchors.bottom: parent.bottom
-        anchors.left:   parent.left
-        anchors.right:  parent.right
-        height:         parent.height
-        color:          qgcPal.window
-        visible:        _showLargeProgress
-
-        property bool _initialDownloadComplete: _activeVehicle ? _activeVehicle.initialConnectComplete : true
-        property bool _userHide:                false
-        property bool _showLargeProgress:       !_initialDownloadComplete && !_userHide && qgcPal.globalTheme === QGCPalette.Light
-
-        Connections {
-            target:                 QGroundControl.multiVehicleManager
-            function onActiveVehicleChanged(activeVehicle) { largeProgressBar._userHide = false }
-        }
+        // =====================================================
+        // IGC LOGO
+        // =====================================================
 
         Rectangle {
-            anchors.top:    parent.top
-            anchors.bottom: parent.bottom
-            width:          _activeVehicle ? _activeVehicle.loadProgress * parent.width : 0
-            color:          qgcPal.colorGreen
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 64
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#35FFFFFF"
+
+            QGCToolBarButton {
+
+                anchors.centerIn: parent
+
+                width: 48
+                height: parent.height
+
+                icon.source: "/res/indifloLogo.svg"
+
+                logo: true
+
+                onClicked: {
+                    mainWindow.showToolSelectDialog()
+                }
+            }
         }
 
-        QGCLabel {
-            anchors.centerIn:   parent
-            text:               qsTr("Downloading")
-            font.pointSize:     ScreenTools.largeFontPointSize
+        // =====================================================
+        // MODE
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 82
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 0
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "MODE"
+
+                    color: "#A9D9F2"
+
+                    font.pixelSize: 9
+                    font.bold: true
+                }
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text:
+                        _activeVehicle
+                            ? (_activeVehicle.flightMode || "—")
+                            : "—"
+
+                    color: "white"
+
+                    font.pixelSize: 13
+                    font.bold: true
+                }
+            }
         }
 
-        QGCLabel {
-            anchors.margins:    _margin
-            anchors.right:      parent.right
-            anchors.bottom:     parent.bottom
-            text:               qsTr("Click anywhere to hide")
+        // =====================================================
+        // GPS POSITION
+        // =====================================================
 
-            property real _margin: ScreenTools.defaultFontPixelWidth / 2
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 105
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Row {
+
+                anchors.centerIn: parent
+
+                spacing: 6
+
+                Rectangle {
+
+                    width: 13
+                    height: 13
+
+                    radius: 7
+
+                    color:
+                        gpsAvailable
+                            ? "#42D96B"
+                            : "#777777"
+
+                    border.width: 1
+                    border.color: "#CCFFFFFF"
+                }
+
+                Column {
+
+                    spacing: 0
+
+                    Text {
+                        text: "GPS"
+
+                        color: "#A9D9F2"
+
+                        font.pixelSize: 9
+                        font.bold: true
+                    }
+
+                    Text {
+                        text:
+                            gpsAvailable
+                                ? "POSITION"
+                                : "NO GPS"
+
+                        color: "white"
+
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
+            }
         }
 
-        MouseArea {
-            anchors.fill:   parent
-            onClicked:      largeProgressBar._userHide = true
+        // =====================================================
+        // GPS SATELLITES + HDOP
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 92
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 0
+
+                // GPS label
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "GPS"
+
+                    color: "#A9D9F2"
+
+                    font.pixelSize: 8
+                    font.bold: true
+                }
+
+                // GPS signal bars
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 2
+
+                    height: 18
+
+                    Repeater {
+
+                        model: 5
+
+                        Rectangle {
+
+                            width: 4
+
+                            height:
+                                gpsAvailable
+                                    ? 5 + (index * 3)
+                                    : 4
+
+                            anchors.bottom: parent.bottom
+
+                            radius: 2
+
+                            color:
+                                gpsAvailable
+                                    ? "#45DFF5"
+                                    : "#606870"
+                        }
+                    }
+                }
+
+                // Satellite count
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text:
+                        gpsAvailable
+                            ? satelliteCount + " SAT"
+                            : "-- SAT"
+
+                    color: "#E8F8FF"
+
+                    font.pixelSize: 7
+
+                    font.bold: true
+                }
+
+                // HDOP
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text:
+                        gpsAvailable && !isNaN(gpsHdop)
+                            ? "HDOP " + gpsHdop.toFixed(1)
+                            : "HDOP --"
+
+                    color: "#A9D9F2"
+
+                    font.pixelSize: 7
+                }
+            }
         }
+
+        // =====================================================
+        // CENTRAL FLIGHT STATUS
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+
+            Layout.fillWidth: true
+
+            Layout.minimumWidth: 260
+
+            radius: 8
+
+            color: statusColor
+
+            opacity: 0.92
+
+            border.width: 1
+            border.color: "#70FFFFFF"
+
+            // Glass highlight
+
+            Rectangle {
+
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+
+                height: parent.height * 0.45
+
+                radius: 8
+
+                color: "#FFFFFF"
+
+                opacity: 0.07
+            }
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 0
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: flightStatusText
+
+                    color: "white"
+
+                    font.pixelSize: 16
+
+                    font.bold: true
+                }
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: flightSubStatus
+
+                    color: "#E8F8FF"
+
+                    font.pixelSize: 9
+
+                    font.bold: true
+                }
+            }
+        }
+
+        // =====================================================
+        // RC
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+
+            Layout.preferredWidth: 78
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 0
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "RC"
+
+                    color: "#A9D9F2"
+
+                    font.pixelSize: 8
+
+                    font.bold: true
+                }
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 2
+
+                    Repeater {
+
+                        model: 5
+
+                        Rectangle {
+
+                            width: 3
+
+                            height: 5 + (index * 4)
+
+                            anchors.bottom: parent.bottom
+
+                            radius: 2
+
+                            color: "#53DDF4"
+                        }
+                    }
+                }
+            }
+        }
+
+        // =====================================================
+        // HD
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+
+            Layout.preferredWidth: 78
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 0
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "HD"
+
+                    color: "#A9D9F2"
+
+                    font.pixelSize: 9
+
+                    font.bold: true
+                }
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 2
+
+                    Repeater {
+
+                        model: 5
+
+                        Rectangle {
+
+                            width: 3
+
+                            height: 5 + (index * 4)
+
+                            anchors.bottom: parent.bottom
+
+                            radius: 2
+
+                            color: "#53DDF4"
+                        }
+                    }
+                }
+            }
+        }
+
+        // =====================================================
+        // BATTERY
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+
+            Layout.preferredWidth: 92
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Row {
+
+                anchors.centerIn: parent
+
+                spacing: 5
+
+                Text {
+
+                    text: "▣"
+
+                    color:
+                        !batteryAvailable
+                            ? "#777777"
+                            : batteryPercent <= 20
+                                ? "#FF5555"
+                                : batteryPercent <= 40
+                                    ? "#FFD45C"
+                                    : "#55E978"
+
+                    font.pixelSize: 20
+                }
+
+                Text {
+
+                    text:
+                        batteryAvailable
+                            ? Math.round(batteryPercent) + "%"
+                            : "--%"
+
+                    color: "white"
+
+                    font.pixelSize: 15
+
+                    font.bold: true
+                }
+            }
+        }
+
+        // =====================================================
+        // SETTINGS
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+
+            Layout.preferredWidth: 48
+
+            radius: 6
+
+            color: "#331B4560"
+
+            border.width: 1
+            border.color: "#25FFFFFF"
+
+            Text {
+
+                anchors.centerIn: parent
+
+                text: "⚙"
+
+                color: "#EAF8FF"
+
+                font.pixelSize: 21
+            }
+
+            MouseArea {
+
+                anchors.fill: parent
+
+                hoverEnabled: true
+
+                onClicked: {
+                    mainWindow.showToolSelectDialog()
+                }
+
+                Rectangle {
+
+                    anchors.fill: parent
+
+                    radius: 6
+
+                    color: "#FFFFFF"
+
+                    opacity:
+                        parent.containsMouse
+                            ? 0.10
+                            : 0
+                }
+            }
+        }
+    }
+
+    // =========================================================
+    // PARAMETER DOWNLOAD PROGRESS
+    // =========================================================
+
+    Rectangle {
+
+        anchors.bottom: parent.bottom
+
+        anchors.left: parent.left
+
+        height: 2
+
+        width:
+            _activeVehicle
+                ? _activeVehicle.loadProgress * parent.width
+                : 0
+
+        color: "#63E7F5"
+
+        opacity: 0.85
     }
 }

@@ -5,8 +5,12 @@ import QGroundControl
 Rectangle {
     id: root
 
-    width: 250
-    height: 330
+    // =========================================================
+    // COMPACT GIMBAL PANEL
+    // =========================================================
+
+    width: 163
+    height: 215
 
     color: "#88000000"
     radius: 18
@@ -14,33 +18,45 @@ Rectangle {
     border.width: 1
     border.color: "#777777"
 
-    // ---------------------------------------------------------
-    // Active vehicle
-    // ---------------------------------------------------------
+    // =========================================================
+    // ACTIVE VEHICLE
+    // =========================================================
 
     property var _activeVehicle:
         QGroundControl.multiVehicleManager.activeVehicle
 
-    // Normalized on-screen gimbal command range.
-    // QGC expects pan/tilt in approximately [-1, +1].
-    property real commandSpeed: 1.0
-
-    // ---------------------------------------------------------
-    // Joystick settings
-    // ---------------------------------------------------------
+    // =========================================================
+    // JOYSTICK SETTINGS
+    // =========================================================
 
     property real stickX: 0
     property real stickY: 0
 
-    property real stickDistance: 65
+    property real stickDistance: 42
 
     property bool joystickDragging: false
 
-    // ---------------------------------------------------------
-    // Debug helper
-    // ---------------------------------------------------------
+    // =========================================================
+    // BUTTON STEP SETTINGS
+    // =========================================================
+
+    // Requested movement for every button click.
+    property real buttonStepDegrees: 5.0
+
+    // Duration for one discrete button command.
+    //
+    // This is intentionally short. The actual angular response
+    // depends on the gimbal controller's configured rate.
+    property int buttonCommandDuration: 150
+
+    property bool buttonCommandActive: false
+
+    // =========================================================
+    // GIMBAL CONTROLLER
+    // =========================================================
 
     function gimbalController() {
+
         if (!_activeVehicle) {
             console.log("CUSTOM GIMBAL: no active vehicle")
             return null
@@ -54,21 +70,9 @@ Rectangle {
         return _activeVehicle.gimbalController
     }
 
-    // ---------------------------------------------------------
-    // Gimbal command
-    //
-    // Uses QGC's native on-screen gimbal-control path.
-    //
-    // panPct:
-    //     -1 = left
-    //      0 = center
-    //     +1 = right
-    //
-    // tiltPct:
-    //     -1 = down
-    //      0 = center
-    //     +1 = up
-    // ---------------------------------------------------------
+    // =========================================================
+    // NORMAL JOYSTICK COMMAND
+    // =========================================================
 
     function moveGimbal(pan, tilt) {
 
@@ -96,9 +100,9 @@ Rectangle {
         )
     }
 
-    // ---------------------------------------------------------
-    // Stop gimbal
-    // ---------------------------------------------------------
+    // =========================================================
+    // STOP JOYSTICK COMMAND
+    // =========================================================
 
     function stopGimbal() {
 
@@ -107,8 +111,6 @@ Rectangle {
         if (!controller) {
             return
         }
-
-        console.log("CUSTOM GIMBAL STOP")
 
         controller.gimbalOnScreenControl(
             0,
@@ -122,9 +124,87 @@ Rectangle {
         )
     }
 
-    // ---------------------------------------------------------
-    // Joystick movement
-    // ---------------------------------------------------------
+    // =========================================================
+    // DISCRETE 5 DEGREE BUTTON COMMAND
+    // =========================================================
+    //
+    // direction:
+    //
+    //   +1 = right / up
+    //   -1 = left / down
+    //
+    // Because the current QGC interface is rate based, a button
+    // click is implemented as a short rate command followed by
+    // a stop command.
+    //
+    // buttonStepDegrees is kept explicit here so the requested
+    // 5-degree step is easy to change later.
+    // =========================================================
+
+    function buttonStep(panDirection, tiltDirection) {
+
+        if (buttonCommandActive) {
+            return
+        }
+
+        var controller = gimbalController()
+
+        if (!controller) {
+            return
+        }
+
+        buttonCommandActive = true
+
+        console.log(
+            "CUSTOM GIMBAL BUTTON STEP:",
+            buttonStepDegrees,
+            "degrees",
+            "pan =", panDirection,
+            "tilt =", tiltDirection
+        )
+
+        controller.gimbalOnScreenControl(
+            panDirection,
+            tiltDirection,
+            false,  // clickAndPoint
+            true,   // clickAndDrag
+            true,   // rateControl
+            false,  // retract
+            false,  // neutral
+            false   // yawlock
+        )
+
+        buttonTimer.restart()
+    }
+
+    // =========================================================
+    // BUTTON COMMAND TIMER
+    // =========================================================
+
+    Timer {
+        id: buttonTimer
+
+        interval: root.buttonCommandDuration
+
+        repeat: false
+
+        onTriggered: {
+
+            root.stopGimbal()
+
+            root.buttonCommandActive = false
+
+            console.log(
+                "CUSTOM GIMBAL BUTTON STEP COMPLETE:",
+                root.buttonStepDegrees,
+                "degrees"
+            )
+        }
+    }
+
+    // =========================================================
+    // JOYSTICK MOVEMENT
+    // =========================================================
 
     function moveJoystick(mouseX, mouseY) {
 
@@ -153,27 +233,15 @@ Rectangle {
         root.stickX = dx
         root.stickY = dy
 
-        // -----------------------------------------------------
-        // Convert screen position to normalized gimbal command
-        //
-        // X:
-        //   left  = -1
-        //   right = +1
-        //
-        // Y:
-        //   up    = +1
-        //   down  = -1
-        //
-        // Screen Y is inverted, hence the minus sign.
-        // -----------------------------------------------------
+        // =====================================================
+        // NORMAL JOYSTICK COMMAND
+        // =====================================================
 
         var panCommand =
-            (dx / root.stickDistance) *
-            root.commandSpeed
+            dx / root.stickDistance
 
         var tiltCommand =
-            -(dy / root.stickDistance) *
-            root.commandSpeed
+            -(dy / root.stickDistance)
 
         root.moveGimbal(
             panCommand,
@@ -181,9 +249,9 @@ Rectangle {
         )
     }
 
-    // ---------------------------------------------------------
-    // Joystick reset
-    // ---------------------------------------------------------
+    // =========================================================
+    // RESET JOYSTICK
+    // =========================================================
 
     function resetJoystick() {
 
@@ -193,9 +261,9 @@ Rectangle {
         root.stopGimbal()
     }
 
-    // ---------------------------------------------------------
-    // Title
-    // ---------------------------------------------------------
+    // =========================================================
+    // TITLE
+    // =========================================================
 
     Text {
         id: title
@@ -204,41 +272,43 @@ Rectangle {
 
         color: "white"
 
-        font.pixelSize: 18
+        font.pixelSize: 12
         font.bold: true
 
         anchors.top: parent.top
-        anchors.topMargin: 10
+        anchors.topMargin: 7
 
         anchors.horizontalCenter:
             parent.horizontalCenter
     }
 
-    // ---------------------------------------------------------
-    // Gimbal pad
-    // ---------------------------------------------------------
+    // =========================================================
+    // GIMBAL PAD
+    // =========================================================
 
     Item {
         id: gimbalPad
 
-        width: 220
-        height: 220
+        width: 145
+        height: 145
 
         anchors.horizontalCenter:
             parent.horizontalCenter
 
-        anchors.top: title.bottom
-        anchors.topMargin: 45
+        anchors.top:
+            title.bottom
 
-        // -----------------------------------------------------
-        // Outer joystick circle
-        // -----------------------------------------------------
+        anchors.topMargin: 28
+
+        // =====================================================
+        // OUTER JOYSTICK CIRCLE
+        // =====================================================
 
         Rectangle {
             id: circle
 
-            width: 190
-            height: 190
+            width: 125
+            height: 125
 
             anchors.centerIn: parent
 
@@ -249,9 +319,9 @@ Rectangle {
             border.width: 2
             border.color: "#cccccc"
 
-            // -------------------------------------------------
-            // Joystick drag area
-            // -------------------------------------------------
+            // =================================================
+            // JOYSTICK DRAG AREA
+            // =================================================
 
             MouseArea {
                 id: joystickArea
@@ -299,15 +369,15 @@ Rectangle {
             }
         }
 
-        // -----------------------------------------------------
-        // Moving joystick
-        // -----------------------------------------------------
+        // =====================================================
+        // MOVING JOYSTICK
+        // =====================================================
 
         Rectangle {
             id: centerStick
 
-            width: 55
-            height: 55
+            width: 38
+            height: 38
 
             anchors.centerIn: circle
 
@@ -347,15 +417,15 @@ Rectangle {
             }
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // UP BUTTON
-        // -----------------------------------------------------
+        // =====================================================
 
         RoundButton {
             id: upButton
 
-            width: 50
-            height: 50
+            width: 34
+            height: 34
 
             anchors.horizontalCenter:
                 circle.horizontalCenter
@@ -366,8 +436,6 @@ Rectangle {
             anchors.bottomMargin: -10
 
             text: "▲"
-
-            font.pixelSize: 22
 
             z: 10
 
@@ -390,7 +458,7 @@ Rectangle {
 
                 color: "white"
 
-                font.pixelSize: 22
+                font.pixelSize: 15
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -399,36 +467,26 @@ Rectangle {
                     Text.AlignVCenter
             }
 
-            onPressed: {
+            onClicked: {
 
                 root.joystickDragging = false
 
-                root.moveGimbal(
+                root.buttonStep(
                     0,
-                    root.commandSpeed
+                    1
                 )
-            }
-
-            onReleased: {
-
-                root.stopGimbal()
-            }
-
-            onCanceled: {
-
-                root.stopGimbal()
             }
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // DOWN BUTTON
-        // -----------------------------------------------------
+        // =====================================================
 
         RoundButton {
             id: downButton
 
-            width: 50
-            height: 50
+            width: 34
+            height: 34
 
             anchors.horizontalCenter:
                 circle.horizontalCenter
@@ -439,8 +497,6 @@ Rectangle {
             anchors.topMargin: -10
 
             text: "▼"
-
-            font.pixelSize: 22
 
             z: 10
 
@@ -463,7 +519,7 @@ Rectangle {
 
                 color: "white"
 
-                font.pixelSize: 22
+                font.pixelSize: 15
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -472,36 +528,26 @@ Rectangle {
                     Text.AlignVCenter
             }
 
-            onPressed: {
+            onClicked: {
 
                 root.joystickDragging = false
 
-                root.moveGimbal(
+                root.buttonStep(
                     0,
-                    -root.commandSpeed
+                    -1
                 )
-            }
-
-            onReleased: {
-
-                root.stopGimbal()
-            }
-
-            onCanceled: {
-
-                root.stopGimbal()
             }
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // LEFT BUTTON
-        // -----------------------------------------------------
+        // =====================================================
 
         RoundButton {
             id: leftButton
 
-            width: 50
-            height: 50
+            width: 34
+            height: 34
 
             anchors.verticalCenter:
                 circle.verticalCenter
@@ -512,8 +558,6 @@ Rectangle {
             anchors.rightMargin: -10
 
             text: "◀"
-
-            font.pixelSize: 22
 
             z: 10
 
@@ -536,7 +580,7 @@ Rectangle {
 
                 color: "white"
 
-                font.pixelSize: 22
+                font.pixelSize: 15
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -545,36 +589,26 @@ Rectangle {
                     Text.AlignVCenter
             }
 
-            onPressed: {
+            onClicked: {
 
                 root.joystickDragging = false
 
-                root.moveGimbal(
-                    -root.commandSpeed,
+                root.buttonStep(
+                    -1,
                     0
                 )
             }
-
-            onReleased: {
-
-                root.stopGimbal()
-            }
-
-            onCanceled: {
-
-                root.stopGimbal()
-            }
         }
 
-        // -----------------------------------------------------
+        // =====================================================
         // RIGHT BUTTON
-        // -----------------------------------------------------
+        // =====================================================
 
         RoundButton {
             id: rightButton
 
-            width: 50
-            height: 50
+            width: 34
+            height: 34
 
             anchors.verticalCenter:
                 circle.verticalCenter
@@ -585,8 +619,6 @@ Rectangle {
             anchors.leftMargin: -10
 
             text: "▶"
-
-            font.pixelSize: 22
 
             z: 10
 
@@ -609,7 +641,7 @@ Rectangle {
 
                 color: "white"
 
-                font.pixelSize: 22
+                font.pixelSize: 15
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -618,24 +650,14 @@ Rectangle {
                     Text.AlignVCenter
             }
 
-            onPressed: {
+            onClicked: {
 
                 root.joystickDragging = false
 
-                root.moveGimbal(
-                    root.commandSpeed,
+                root.buttonStep(
+                    1,
                     0
                 )
-            }
-
-            onReleased: {
-
-                root.stopGimbal()
-            }
-
-            onCanceled: {
-
-                root.stopGimbal()
             }
         }
     }

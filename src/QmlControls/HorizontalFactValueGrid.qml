@@ -51,11 +51,31 @@ T.HorizontalFactValueGrid {
 Rectangle {
     id: telemetryCard
 
-    radius: 10
-    color: "#111820"
+radius: 14
+clip: true
 
-    border.width: 1
-    border.color: "#35FFFFFF"
+// Transparent liquid-glass background
+gradient: Gradient {
+    orientation: Gradient.Vertical
+
+    GradientStop {
+        position: 0.0
+        color: "#551E3448"
+    }
+
+    GradientStop {
+        position: 0.45
+        color: "#35152535"
+    }
+
+    GradientStop {
+        position: 1.0
+        color: "#45101E2C"
+    }
+}
+
+border.width: 1
+border.color: "#65FFFFFF"
 
     Layout.fillHeight: true
 
