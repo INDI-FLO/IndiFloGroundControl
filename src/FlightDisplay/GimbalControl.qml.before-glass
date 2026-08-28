@@ -1,0 +1,642 @@
+import QtQuick
+import QtQuick.Controls
+import QGroundControl
+
+Rectangle {
+    id: root
+
+    width: 250
+    height: 330
+
+    color: "#88000000"
+    radius: 18
+
+    border.width: 1
+    border.color: "#777777"
+
+    // ---------------------------------------------------------
+    // Active vehicle
+    // ---------------------------------------------------------
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    // Normalized on-screen gimbal command range.
+    // QGC expects pan/tilt in approximately [-1, +1].
+    property real commandSpeed: 1.0
+
+    // ---------------------------------------------------------
+    // Joystick settings
+    // ---------------------------------------------------------
+
+    property real stickX: 0
+    property real stickY: 0
+
+    property real stickDistance: 65
+
+    property bool joystickDragging: false
+
+    // ---------------------------------------------------------
+    // Debug helper
+    // ---------------------------------------------------------
+
+    function gimbalController() {
+        if (!_activeVehicle) {
+            console.log("CUSTOM GIMBAL: no active vehicle")
+            return null
+        }
+
+        if (!_activeVehicle.gimbalController) {
+            console.log("CUSTOM GIMBAL: no gimbal controller")
+            return null
+        }
+
+        return _activeVehicle.gimbalController
+    }
+
+    // ---------------------------------------------------------
+    // Gimbal command
+    //
+    // Uses QGC's native on-screen gimbal-control path.
+    //
+    // panPct:
+    //     -1 = left
+    //      0 = center
+    //     +1 = right
+    //
+    // tiltPct:
+    //     -1 = down
+    //      0 = center
+    //     +1 = up
+    // ---------------------------------------------------------
+
+    function moveGimbal(pan, tilt) {
+
+        var controller = gimbalController()
+
+        if (!controller) {
+            return
+        }
+
+        console.log(
+            "CUSTOM GIMBAL MOVE:",
+            "pan =", pan,
+            "tilt =", tilt
+        )
+
+        controller.gimbalOnScreenControl(
+            pan,
+            tilt,
+            false,  // clickAndPoint
+            true,   // clickAndDrag
+            true,   // rateControl
+            false,  // retract
+            false,  // neutral
+            false   // yawlock
+        )
+    }
+
+    // ---------------------------------------------------------
+    // Stop gimbal
+    // ---------------------------------------------------------
+
+    function stopGimbal() {
+
+        var controller = gimbalController()
+
+        if (!controller) {
+            return
+        }
+
+        console.log("CUSTOM GIMBAL STOP")
+
+        controller.gimbalOnScreenControl(
+            0,
+            0,
+            false,  // clickAndPoint
+            true,   // clickAndDrag
+            true,   // rateControl
+            false,  // retract
+            false,  // neutral
+            false   // yawlock
+        )
+    }
+
+    // ---------------------------------------------------------
+    // Joystick movement
+    // ---------------------------------------------------------
+
+    function moveJoystick(mouseX, mouseY) {
+
+        var centerX = circle.width / 2
+        var centerY = circle.height / 2
+
+        var dx = mouseX - centerX
+        var dy = mouseY - centerY
+
+        var distance = Math.sqrt(
+            dx * dx +
+            dy * dy
+        )
+
+        if (distance > root.stickDistance && distance > 0) {
+
+            dx =
+                dx / distance *
+                root.stickDistance
+
+            dy =
+                dy / distance *
+                root.stickDistance
+        }
+
+        root.stickX = dx
+        root.stickY = dy
+
+        // -----------------------------------------------------
+        // Convert screen position to normalized gimbal command
+        //
+        // X:
+        //   left  = -1
+        //   right = +1
+        //
+        // Y:
+        //   up    = +1
+        //   down  = -1
+        //
+        // Screen Y is inverted, hence the minus sign.
+        // -----------------------------------------------------
+
+        var panCommand =
+            (dx / root.stickDistance) *
+            root.commandSpeed
+
+        var tiltCommand =
+            -(dy / root.stickDistance) *
+            root.commandSpeed
+
+        root.moveGimbal(
+            panCommand,
+            tiltCommand
+        )
+    }
+
+    // ---------------------------------------------------------
+    // Joystick reset
+    // ---------------------------------------------------------
+
+    function resetJoystick() {
+
+        root.stickX = 0
+        root.stickY = 0
+
+        root.stopGimbal()
+    }
+
+    // ---------------------------------------------------------
+    // Title
+    // ---------------------------------------------------------
+
+    Text {
+        id: title
+
+        text: qsTr("GIMBAL CONTROL")
+
+        color: "white"
+
+        font.pixelSize: 18
+        font.bold: true
+
+        anchors.top: parent.top
+        anchors.topMargin: 10
+
+        anchors.horizontalCenter:
+            parent.horizontalCenter
+    }
+
+    // ---------------------------------------------------------
+    // Gimbal pad
+    // ---------------------------------------------------------
+
+    Item {
+        id: gimbalPad
+
+        width: 220
+        height: 220
+
+        anchors.horizontalCenter:
+            parent.horizontalCenter
+
+        anchors.top: title.bottom
+        anchors.topMargin: 45
+
+        // -----------------------------------------------------
+        // Outer joystick circle
+        // -----------------------------------------------------
+
+        Rectangle {
+            id: circle
+
+            width: 190
+            height: 190
+
+            anchors.centerIn: parent
+
+            radius: width / 2
+
+            color: "#22000000"
+
+            border.width: 2
+            border.color: "#cccccc"
+
+            // -------------------------------------------------
+            // Joystick drag area
+            // -------------------------------------------------
+
+            MouseArea {
+                id: joystickArea
+
+                anchors.fill: parent
+
+                hoverEnabled: true
+
+                preventStealing: true
+
+                onPressed: function(mouse) {
+
+                    root.joystickDragging = true
+
+                    root.moveJoystick(
+                        mouse.x,
+                        mouse.y
+                    )
+                }
+
+                onPositionChanged: function(mouse) {
+
+                    if (root.joystickDragging) {
+
+                        root.moveJoystick(
+                            mouse.x,
+                            mouse.y
+                        )
+                    }
+                }
+
+                onReleased: {
+
+                    root.joystickDragging = false
+
+                    root.resetJoystick()
+                }
+
+                onCanceled: {
+
+                    root.joystickDragging = false
+
+                    root.resetJoystick()
+                }
+            }
+        }
+
+        // -----------------------------------------------------
+        // Moving joystick
+        // -----------------------------------------------------
+
+        Rectangle {
+            id: centerStick
+
+            width: 55
+            height: 55
+
+            anchors.centerIn: circle
+
+            radius: width / 2
+
+            color: "#4488ff"
+
+            border.width: 2
+            border.color: "white"
+
+            z: 5
+
+            transform: Translate {
+
+                x: root.stickX
+                y: root.stickY
+            }
+
+            Behavior on x {
+
+                NumberAnimation {
+                    duration:
+                        root.joystickDragging
+                        ? 0
+                        : 120
+                }
+            }
+
+            Behavior on y {
+
+                NumberAnimation {
+                    duration:
+                        root.joystickDragging
+                        ? 0
+                        : 120
+                }
+            }
+        }
+
+        // -----------------------------------------------------
+        // UP BUTTON
+        // -----------------------------------------------------
+
+        RoundButton {
+            id: upButton
+
+            width: 50
+            height: 50
+
+            anchors.horizontalCenter:
+                circle.horizontalCenter
+
+            anchors.bottom:
+                circle.top
+
+            anchors.bottomMargin: -10
+
+            text: "▲"
+
+            font.pixelSize: 22
+
+            z: 10
+
+            background: Rectangle {
+
+                radius: width / 2
+
+                color:
+                    upButton.pressed
+                    ? "#6699ff"
+                    : "#555555"
+
+                border.width: 1
+                border.color: "#dddddd"
+            }
+
+            contentItem: Text {
+
+                text: upButton.text
+
+                color: "white"
+
+                font.pixelSize: 22
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+            onPressed: {
+
+                root.joystickDragging = false
+
+                root.moveGimbal(
+                    0,
+                    root.commandSpeed
+                )
+            }
+
+            onReleased: {
+
+                root.stopGimbal()
+            }
+
+            onCanceled: {
+
+                root.stopGimbal()
+            }
+        }
+
+        // -----------------------------------------------------
+        // DOWN BUTTON
+        // -----------------------------------------------------
+
+        RoundButton {
+            id: downButton
+
+            width: 50
+            height: 50
+
+            anchors.horizontalCenter:
+                circle.horizontalCenter
+
+            anchors.top:
+                circle.bottom
+
+            anchors.topMargin: -10
+
+            text: "▼"
+
+            font.pixelSize: 22
+
+            z: 10
+
+            background: Rectangle {
+
+                radius: width / 2
+
+                color:
+                    downButton.pressed
+                    ? "#6699ff"
+                    : "#555555"
+
+                border.width: 1
+                border.color: "#dddddd"
+            }
+
+            contentItem: Text {
+
+                text: downButton.text
+
+                color: "white"
+
+                font.pixelSize: 22
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+            onPressed: {
+
+                root.joystickDragging = false
+
+                root.moveGimbal(
+                    0,
+                    -root.commandSpeed
+                )
+            }
+
+            onReleased: {
+
+                root.stopGimbal()
+            }
+
+            onCanceled: {
+
+                root.stopGimbal()
+            }
+        }
+
+        // -----------------------------------------------------
+        // LEFT BUTTON
+        // -----------------------------------------------------
+
+        RoundButton {
+            id: leftButton
+
+            width: 50
+            height: 50
+
+            anchors.verticalCenter:
+                circle.verticalCenter
+
+            anchors.right:
+                circle.left
+
+            anchors.rightMargin: -10
+
+            text: "◀"
+
+            font.pixelSize: 22
+
+            z: 10
+
+            background: Rectangle {
+
+                radius: width / 2
+
+                color:
+                    leftButton.pressed
+                    ? "#6699ff"
+                    : "#555555"
+
+                border.width: 1
+                border.color: "#dddddd"
+            }
+
+            contentItem: Text {
+
+                text: leftButton.text
+
+                color: "white"
+
+                font.pixelSize: 22
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+            onPressed: {
+
+                root.joystickDragging = false
+
+                root.moveGimbal(
+                    -root.commandSpeed,
+                    0
+                )
+            }
+
+            onReleased: {
+
+                root.stopGimbal()
+            }
+
+            onCanceled: {
+
+                root.stopGimbal()
+            }
+        }
+
+        // -----------------------------------------------------
+        // RIGHT BUTTON
+        // -----------------------------------------------------
+
+        RoundButton {
+            id: rightButton
+
+            width: 50
+            height: 50
+
+            anchors.verticalCenter:
+                circle.verticalCenter
+
+            anchors.left:
+                circle.right
+
+            anchors.leftMargin: -10
+
+            text: "▶"
+
+            font.pixelSize: 22
+
+            z: 10
+
+            background: Rectangle {
+
+                radius: width / 2
+
+                color:
+                    rightButton.pressed
+                    ? "#6699ff"
+                    : "#555555"
+
+                border.width: 1
+                border.color: "#dddddd"
+            }
+
+            contentItem: Text {
+
+                text: rightButton.text
+
+                color: "white"
+
+                font.pixelSize: 22
+
+                horizontalAlignment:
+                    Text.AlignHCenter
+
+                verticalAlignment:
+                    Text.AlignVCenter
+            }
+
+            onPressed: {
+
+                root.joystickDragging = false
+
+                root.moveGimbal(
+                    root.commandSpeed,
+                    0
+                )
+            }
+
+            onReleased: {
+
+                root.stopGimbal()
+            }
+
+            onCanceled: {
+
+                root.stopGimbal()
+            }
+        }
+    }
+}

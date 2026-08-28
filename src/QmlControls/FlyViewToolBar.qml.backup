@@ -1,0 +1,677 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Palette
+import QGroundControl.MultiVehicleManager
+import QGroundControl.ScreenTools
+
+Rectangle {
+    id: root
+
+    width: parent.width
+    height: ScreenTools.toolbarHeight
+
+    color: "#102B46"
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    QGCPalette {
+        id: qgcPal
+    }
+
+    // =========================================================
+    // TOP TOOLBAR BACKGROUND
+    // =========================================================
+
+    Rectangle {
+        anchors.fill: parent
+
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+
+            GradientStop {
+                position: 0.00
+                color: "#162D45"
+            }
+
+            GradientStop {
+                position: 0.18
+                color: "#245B8C"
+            }
+
+            GradientStop {
+                position: 0.42
+                color: "#1671B8"
+            }
+
+            GradientStop {
+                position: 0.62
+                color: "#16558A"
+            }
+
+            GradientStop {
+                position: 0.82
+                color: "#102E4B"
+            }
+
+            GradientStop {
+                position: 1.00
+                color: "#071B2D"
+            }
+        }
+    }
+
+    // =========================================================
+    // BOTTOM BORDER
+    // =========================================================
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        height: 1
+
+        color: "#5FA8D8"
+        opacity: 0.45
+    }
+
+    // =========================================================
+    // MAIN TOOLBAR
+    // =========================================================
+
+    RowLayout {
+
+        anchors.fill: parent
+
+        spacing: 0
+
+        // =====================================================
+        // IGC LOGO
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 82
+
+            color: "#102B46"
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+
+            QGCToolBarButton {
+
+                anchors.centerIn: parent
+
+                width: 62
+                height: parent.height
+
+                icon.source: "/res/indifloLogo.svg"
+
+                logo: true
+
+                onClicked: {
+                    mainWindow.showToolSelectDialog()
+                }
+            }
+        }
+
+        // =====================================================
+        // MODE
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 90
+
+            color: "transparent"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 2
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "MODE"
+
+                    color: "#DCEEFF"
+
+                    font.pixelSize: 11
+                    font.bold: true
+                }
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: _activeVehicle
+                          ? (_activeVehicle.flightMode || "—")
+                          : "—"
+
+                    color: "white"
+
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // GPS / POSITION
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 120
+
+            color: "transparent"
+
+            Row {
+
+                anchors.centerIn: parent
+
+                spacing: 9
+
+                Text {
+
+                    text: "●"
+
+                    color: "#63E36E"
+
+                    font.pixelSize: 22
+                }
+
+                Column {
+
+                    spacing: 1
+
+                    Text {
+
+                        text: "GPS"
+
+                        color: "#DCEEFF"
+
+                        font.pixelSize: 10
+                        font.bold: true
+                    }
+
+                    Text {
+
+                        text: "POSITION"
+
+                        color: "white"
+
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // GPS SIGNAL
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 100
+
+            color: "transparent"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 1
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "GPS"
+
+                    color: "#DCEEFF"
+
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 3
+
+                    Rectangle {
+                        width: 4
+                        height: 8
+                        anchors.bottom: parent.bottom
+                        radius: 2
+                        color: "#6DE36D"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 12
+                        anchors.bottom: parent.bottom
+                        radius: 2
+                        color: "#6DE36D"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 16
+                        anchors.bottom: parent.bottom
+                        radius: 2
+                        color: "#6DE36D"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 20
+                        anchors.bottom: parent.bottom
+                        radius: 2
+                        color: "#6DE36D"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 24
+                        anchors.bottom: parent.bottom
+                        radius: 2
+                        color: "#6DE36D"
+                    }
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // CENTRAL FLIGHT STATUS
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            Layout.minimumWidth: 300
+
+            color: "#3B8E36"
+
+            Rectangle {
+
+                anchors.fill: parent
+
+                color: "#FFFFFF"
+
+                opacity: 0.05
+            }
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 2
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: _activeVehicle
+                          ? "READY TO FLY"
+                          : "DISCONNECTED"
+
+                    color: "white"
+
+                    font.pixelSize: 18
+                    font.bold: true
+                }
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: _activeVehicle
+                          ? "GPS"
+                          : "NO VEHICLE"
+
+                    color: "#E8FFE8"
+
+                    font.pixelSize: 11
+                }
+            }
+        }
+
+        // =====================================================
+        // RC SIGNAL
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 105
+
+            color: "transparent"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 2
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "RC"
+
+                    color: "#DCEEFF"
+
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 3
+
+                    Rectangle {
+                        width: 4
+                        height: 7
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 11
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 15
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 19
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 23
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // HD / VIDEO SIGNAL
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 105
+
+            color: "transparent"
+
+            Column {
+
+                anchors.centerIn: parent
+
+                spacing: 2
+
+                Text {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "HD"
+
+                    color: "white"
+
+                    font.pixelSize: 15
+                    font.bold: true
+                }
+
+                Row {
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 3
+
+                    Rectangle {
+                        width: 4
+                        height: 7
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 11
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 15
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+
+                    Rectangle {
+                        width: 4
+                        height: 19
+                        anchors.bottom: parent.bottom
+                        color: "#67D9F5"
+                    }
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // BATTERY
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 115
+
+            color: "transparent"
+
+            Row {
+
+                anchors.centerIn: parent
+
+                spacing: 8
+
+                Text {
+
+                    text: "▣"
+
+                    color: "#61E86B"
+
+                    font.pixelSize: 24
+                }
+
+                Text {
+
+                    text: "100%"
+
+                    color: "white"
+
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+            }
+
+            Rectangle {
+
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.bottom: parent.bottom
+
+                width: 1
+
+                color: "#FFFFFF"
+                opacity: 0.12
+            }
+        }
+
+        // =====================================================
+        // SETTINGS
+        // =====================================================
+
+        Rectangle {
+
+            Layout.fillHeight: true
+            Layout.preferredWidth: 72
+
+            color: "transparent"
+
+            Text {
+
+                anchors.centerIn: parent
+
+                text: "⚙"
+
+                color: "white"
+
+                font.pixelSize: 28
+            }
+
+            MouseArea {
+
+                anchors.fill: parent
+
+                onClicked: {
+                    mainWindow.showToolSelectDialog()
+                }
+
+                hoverEnabled: true
+
+                Rectangle {
+
+                    anchors.fill: parent
+
+                    color: "white"
+
+                    opacity: parent.containsMouse ? 0.08 : 0
+                }
+            }
+        }
+    }
+
+    // =========================================================
+    // PARAMETER DOWNLOAD PROGRESS
+    // =========================================================
+
+    Rectangle {
+
+        anchors.bottom: parent.bottom
+
+        anchors.left: parent.left
+
+        height: 2
+
+        width: _activeVehicle
+               ? _activeVehicle.loadProgress * parent.width
+               : 0
+
+        color: "#6DE36D"
+    }
+}
