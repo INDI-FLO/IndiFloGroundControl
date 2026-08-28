@@ -1,0 +1,560 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
+
+Rectangle {
+    id: root
+
+    // =========================================================
+    // GIMBAL PANEL SIZE
+    // =========================================================
+
+    // Previous panel was approximately 250 x 330.
+    // 65% size is approximately 163 x 215.
+
+    width: 165
+    height: 215
+
+    radius: 14
+
+    color: "#66101820"
+
+    border.width: 1
+    border.color: "#70FFFFFF"
+
+    clip: true
+
+    // =========================================================
+    // ACTIVE VEHICLE
+    // =========================================================
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    // =========================================================
+    // GIMBAL SETTINGS
+    // =========================================================
+
+    // Directional buttons move exactly 5 degrees per click.
+    property real buttonStep: 5.0
+
+    // Joystick movement speed.
+    // This remains independent from the 5-degree buttons.
+    property real joystickSpeed: 10.0
+
+    // Maximum joystick travel.
+    property real stickDistance: 42
+
+    // Current commanded gimbal position.
+    property real currentPan: 0.0
+    property real currentTilt: 0.0
+
+    // =========================================================
+    // SEND GIMBAL COMMAND
+    // =========================================================
+
+    function moveGimbal(pan, tilt) {
+        if (!_activeVehicle) {
+            return
+        }
+
+        _activeVehicle.sendGimbalCommand(pan, tilt)
+    }
+
+    // =========================================================
+    // MOVE BY 5 DEGREES
+    // =========================================================
+
+    function movePanStep(direction) {
+
+        currentPan += direction * buttonStep
+
+        // Keep yaw within -180 to +180 degrees.
+        if (currentPan > 180)
+            currentPan = 180
+
+        if (currentPan < -180)
+            currentPan = -180
+
+        moveGimbal(currentPan, currentTilt)
+    }
+
+    function moveTiltStep(direction) {
+
+        currentTilt += direction * buttonStep
+
+        // Keep pitch within -90 to +90 degrees.
+        if (currentTilt > 90)
+            currentTilt = 90
+
+        if (currentTilt < -90)
+            currentTilt = -90
+
+        moveGimbal(currentPan, currentTilt)
+    }
+
+    // =========================================================
+    // RESET GIMBAL POSITION
+    // =========================================================
+
+    function resetGimbal() {
+
+        currentPan = 0
+        currentTilt = 0
+
+        moveGimbal(0, 0)
+    }
+
+    // =========================================================
+    // GLASS BACKGROUND
+    // =========================================================
+
+    Rectangle {
+        anchors.fill: parent
+
+        radius: root.radius
+
+        color: "#66101820"
+
+        border.width: 1
+
+        border.color: "#65FFFFFF"
+
+        gradient: Gradient {
+
+            GradientStop {
+                position: 0.0
+                color: "#551E2F3F"
+            }
+
+            GradientStop {
+                position: 0.45
+                color: "#44101820"
+            }
+
+            GradientStop {
+                position: 1.0
+                color: "#66101820"
+            }
+        }
+    }
+
+    // =========================================================
+    // GLASS TOP SHINE
+    // =========================================================
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+
+        height: 28
+
+        radius: 14
+
+        color: "#FFFFFF"
+
+        opacity: 0.035
+    }
+
+    // =========================================================
+    // TITLE
+    // =========================================================
+
+    Text {
+        id: title
+
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        anchors.topMargin: 8
+
+        text: qsTr("GIMBAL CONTROL")
+
+        color: "#FFFFFF"
+
+        font.pixelSize: 14
+
+        font.bold: true
+
+        horizontalAlignment: Text.AlignHCenter
+    }
+
+    // =========================================================
+    // JOYSTICK AREA
+    // =========================================================
+
+    Item {
+        id: joystickArea
+
+        width: 150
+        height: 150
+
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: title.bottom
+
+        anchors.topMargin: 2
+
+        // =====================================================
+        // JOYSTICK OUTER RING
+        // =====================================================
+
+        Rectangle {
+            id: joystickRing
+
+            width: 140
+            height: 140
+
+            anchors.centerIn: parent
+
+            radius: width / 2
+
+            color: "transparent"
+
+            border.width: 2
+
+            border.color: "#CFFFFFFF"
+        }
+
+        // =====================================================
+        // JOYSTICK CENTER
+        // =====================================================
+
+        Rectangle {
+            id: joystickStick
+
+            width: 44
+            height: 44
+
+            radius: width / 2
+
+            color: "#4388F5"
+
+            border.width: 2
+
+            border.color: "#EFFFFFFF"
+
+            x: joystickArea.width / 2 - width / 2
+            y: joystickArea.height / 2 - height / 2
+
+            // =================================================
+            // JOYSTICK DRAG AREA
+            // =================================================
+
+            MouseArea {
+
+                anchors.fill: parent
+
+                drag.target: joystickStick
+
+                drag.minimumX:
+                    joystickArea.width / 2 -
+                    joystickStick.width / 2 -
+                    root.stickDistance
+
+                drag.maximumX:
+                    joystickArea.width / 2 -
+                    joystickStick.width / 2 +
+                    root.stickDistance
+
+                drag.minimumY:
+                    joystickArea.height / 2 -
+                    joystickStick.height / 2 -
+                    root.stickDistance
+
+                drag.maximumY:
+                    joystickArea.height / 2 -
+                    joystickStick.height / 2 +
+                    root.stickDistance
+
+                hoverEnabled: true
+
+                onPositionChanged: {
+
+                    var centerX =
+                        joystickArea.width / 2 -
+                        joystickStick.width / 2
+
+                    var centerY =
+                        joystickArea.height / 2 -
+                        joystickStick.height / 2
+
+                    var dx =
+                        joystickStick.x - centerX
+
+                    var dy =
+                        joystickStick.y - centerY
+
+                    if (Math.abs(dx) < 1 &&
+                        Math.abs(dy) < 1) {
+                        return
+                    }
+
+                    var pan =
+                        (dx / root.stickDistance) *
+                        root.joystickSpeed
+
+                    var tilt =
+                        -(dy / root.stickDistance) *
+                        root.joystickSpeed
+
+                    root.moveGimbal(pan, tilt)
+                }
+
+                onReleased: {
+
+                    joystickStick.x =
+                        joystickArea.width / 2 -
+                        joystickStick.width / 2
+
+                    joystickStick.y =
+                        joystickArea.height / 2 -
+                        joystickStick.height / 2
+
+                    // Stop joystick movement.
+                    root.moveGimbal(0, 0)
+                }
+            }
+        }
+
+        // =====================================================
+        // UP BUTTON
+        // =====================================================
+
+        RoundButton {
+
+            id: upButton
+
+            width: 34
+            height: 34
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.top: parent.top
+
+            radius: 17
+
+            text: "▲"
+
+            font.pixelSize: 15
+
+            background: Rectangle {
+
+                radius: 17
+
+                color: upButton.pressed
+                       ? "#777777"
+                       : "#555555"
+
+                border.width: 1
+
+                border.color: "#DFFFFFFF"
+            }
+
+            contentItem: Text {
+
+                text: upButton.text
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 15
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            onClicked: {
+                root.moveTiltStep(1)
+            }
+        }
+
+        // =====================================================
+        // DOWN BUTTON
+        // =====================================================
+
+        RoundButton {
+
+            id: downButton
+
+            width: 34
+            height: 34
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.bottom
+
+            radius: 17
+
+            text: "▼"
+
+            font.pixelSize: 15
+
+            background: Rectangle {
+
+                radius: 17
+
+                color: downButton.pressed
+                       ? "#777777"
+                       : "#555555"
+
+                border.width: 1
+
+                border.color: "#DFFFFFFF"
+            }
+
+            contentItem: Text {
+
+                text: downButton.text
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 15
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            onClicked: {
+                root.moveTiltStep(-1)
+            }
+        }
+
+        // =====================================================
+        // LEFT BUTTON
+        // =====================================================
+
+        RoundButton {
+
+            id: leftButton
+
+            width: 34
+            height: 34
+
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.left: parent.left
+
+            radius: 17
+
+            text: "◀"
+
+            font.pixelSize: 15
+
+            background: Rectangle {
+
+                radius: 17
+
+                color: leftButton.pressed
+                       ? "#777777"
+                       : "#555555"
+
+                border.width: 1
+
+                border.color: "#DFFFFFFF"
+            }
+
+            contentItem: Text {
+
+                text: leftButton.text
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 15
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            onClicked: {
+                root.movePanStep(-1)
+            }
+        }
+
+        // =====================================================
+        // RIGHT BUTTON
+        // =====================================================
+
+        RoundButton {
+
+            id: rightButton
+
+            width: 34
+            height: 34
+
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.right: parent.right
+
+            radius: 17
+
+            text: "▶"
+
+            font.pixelSize: 15
+
+            background: Rectangle {
+
+                radius: 17
+
+                color: rightButton.pressed
+                       ? "#777777"
+                       : "#555555"
+
+                border.width: 1
+
+                border.color: "#DFFFFFFF"
+            }
+
+            contentItem: Text {
+
+                text: rightButton.text
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 15
+
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            onClicked: {
+                root.movePanStep(1)
+            }
+        }
+    }
+
+    // =========================================================
+    // CENTER / RESET BUTTON
+    // =========================================================
+
+    RoundButton {
+
+        id: centerButton
+
+        width: 44
+        height: 44
+
+        anchors.centerIn: joystickArea
+
+        radius: 22
+
+        z: 10
+
+        text: ""
+
+        background: Rectangle {
+
+            radius: 22
+
+            color: "#4388F5"
+
+            border.width: 2
+
+            border.color: "#EFFFFFFF"
+        }
+
+        onClicked: {
+            root.resetGimbal()
+        }
+    }
+}

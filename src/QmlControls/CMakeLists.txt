@@ -85,6 +85,7 @@ qt_add_qml_module(QGroundControlControlsModule
         FlightModeMenu.qml
         HeightIndicator.qml
         HorizontalFactValueGrid.qml
+        IndiFloGlassPanel.qml
         IndicatorButton.qml
         InstrumentValueEditDialog.qml
         InstrumentValueLabel.qml
@@ -216,6 +217,7 @@ qt_add_qml_module(QGroundControlControlsModule
         FlightModeIndicator.qml
         FlightModeMenuIndicator.qml
         FlyViewToolBar.qml
+        LiquidGlass.qml
         FlyViewToolBarIndicators.qml
         GPSIndicator.qml
         GPSIndicatorPage.qml
