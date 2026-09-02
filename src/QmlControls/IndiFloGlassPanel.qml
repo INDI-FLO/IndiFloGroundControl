@@ -1,30 +1,22 @@
 import QtQuick
+import QGroundControl
 
 Rectangle {
     id: root
 
-    property color glassColor: "#66111C2A"
-    property color glassBorderColor: "#80FFFFFF"
-    property real glassRadius: 14
-    property real glassOpacity: 1.0
+    property alias content: contentItem
 
-    radius: glassRadius
-
-    color: Qt.rgba(
-        Qt.color(root.glassColor).r,
-        Qt.color(root.glassColor).g,
-        Qt.color(root.glassColor).b,
-        Qt.color(root.glassColor).a * root.glassOpacity
-    )
+    radius: 14
+    color: "transparent"
 
     border.width: 1
-    border.color: glassBorderColor
+    border.color: "#55FFFFFF"
 
     clip: true
 
-    // ---------------------------------------------------------
-    // Soft glass highlight
-    // ---------------------------------------------------------
+    // =========================================================
+    // LIQUID GLASS BACKGROUND
+    // =========================================================
 
     Rectangle {
         anchors.fill: parent
@@ -33,59 +25,54 @@ Rectangle {
 
         color: "transparent"
 
-        border.width: 1
-        border.color: "#35FFFFFF"
+        gradient: Gradient {
+            orientation: Gradient.Vertical
 
-        opacity: 0.8
+            GradientStop {
+                position: 0.0
+                color: "#20FFFFFF"
+            }
+
+            GradientStop {
+                position: 0.35
+                color: "#0DFFFFFF"
+            }
+
+            GradientStop {
+                position: 0.70
+                color: "#08FFFFFF"
+            }
+
+            GradientStop {
+                position: 1.0
+                color: "#15FFFFFF"
+            }
+        }
     }
 
-    // ---------------------------------------------------------
-    // Top glass reflection
-    // ---------------------------------------------------------
+    // =========================================================
+    // TOP GLASS REFLECTION
+    // =========================================================
 
     Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
 
-        height: parent.height * 0.38
+        height: 1
 
-        radius: parent.radius
+        color: "#80FFFFFF"
 
-        gradient: Gradient {
-
-            GradientStop {
-                position: 0.0
-                color: "#35FFFFFF"
-            }
-
-            GradientStop {
-                position: 0.45
-                color: "#12FFFFFF"
-            }
-
-            GradientStop {
-                position: 1.0
-                color: "#00FFFFFF"
-            }
-        }
-
-        opacity: 0.65
+        opacity: 0.45
     }
 
-    // ---------------------------------------------------------
-    // Bottom dark glass layer
-    // ---------------------------------------------------------
+    // =========================================================
+    // CONTENT
+    // =========================================================
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+    Item {
+        id: contentItem
 
-        height: parent.height * 0.45
-
-        radius: parent.radius
-
-        color: "#18000000"
+        anchors.fill: parent
     }
 }

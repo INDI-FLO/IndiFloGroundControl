@@ -1,3 +1,11 @@
+/****************************************************************************
+ *
+ * IndiFlo Ground Control
+ *
+ * Professional Transparent Fly View Toolbar
+ *
+ ****************************************************************************/
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -8,25 +16,31 @@ import QGroundControl.Palette
 import QGroundControl.MultiVehicleManager
 import QGroundControl.ScreenTools
 
+
 Rectangle {
     id: root
 
     width: parent.width
-
-    // =========================================================
-    // COMPACT TOOLBAR
-    // =========================================================
-
-    height: ScreenTools.toolbarHeight * 0.78
+    height: ScreenTools.toolbarHeight * 1.05
 
     color: "transparent"
+    border.width: 0
+
+    z: 100
+
+
+    // =========================================================
+    // ACTIVE VEHICLE
+    // =========================================================
 
     property var _activeVehicle:
         QGroundControl.multiVehicleManager.activeVehicle
 
+
     QGCPalette {
         id: qgcPal
     }
+
 
     // =========================================================
     // VEHICLE STATUS
@@ -35,13 +49,25 @@ Rectangle {
     property bool vehicleConnected:
         _activeVehicle !== null
 
+
     property bool vehicleFlying:
-        _activeVehicle ? _activeVehicle.flying : false
+        _activeVehicle
+            ? _activeVehicle.flying
+            : false
+
 
     property bool vehicleArmed:
-        _activeVehicle ? _activeVehicle.armed : false
+        _activeVehicle
+            ? _activeVehicle.armed
+            : false
+
+
+    // =========================================================
+    // FLIGHT STATUS TEXT
+    // =========================================================
 
     property string flightStatusText:
+
         !vehicleConnected
             ? "DISCONNECTED"
             : vehicleFlying
@@ -50,7 +76,9 @@ Rectangle {
                     ? "ARMED"
                     : "READY TO FLY"
 
+
     property string flightSubStatus:
+
         !vehicleConnected
             ? "NO VEHICLE"
             : vehicleFlying
@@ -59,189 +87,244 @@ Rectangle {
                     ? "ARMED"
                     : "GPS"
 
+
     // =========================================================
-    // REAL GPS DATA
+    // STATUS COLORS
+    //
+    // GREEN  = FLYING
+    // ORANGE = ARMED
+    // BLUE   = READY
+    // GREY   = DISCONNECTED
+    // =========================================================
+
+    property color statusColor:
+
+        !vehicleConnected
+            ? "#68737D"
+
+            : vehicleFlying
+                ? "#35C759"
+
+                : vehicleArmed
+                    ? "#F0A52B"
+
+                    : "#3287C7"
+
+
+    property color statusTextColor:
+
+        !vehicleConnected
+            ? "#D0D5D9"
+
+            : vehicleFlying
+                ? "#7CFF9A"
+
+                : vehicleArmed
+                    ? "#FFD37A"
+
+                    : "#7CC7FF"
+
+
+    // =========================================================
+    // GPS
     // =========================================================
 
     property int satelliteCount:
-        _activeVehicle && _activeVehicle.gps
+
+        _activeVehicle &&
+        _activeVehicle.gps
             ? _activeVehicle.gps.count.value
             : 0
 
+
     property real gpsHdop:
-        _activeVehicle && _activeVehicle.gps
+
+        _activeVehicle &&
+        _activeVehicle.gps
             ? _activeVehicle.gps.hdop.value
             : NaN
 
+
     property bool gpsAvailable:
+
         _activeVehicle &&
         _activeVehicle.gps &&
         satelliteCount > 0
 
+
     // =========================================================
-    // REAL BATTERY DATA
+    // BATTERY
     // =========================================================
 
     property var activeBattery:
+
         _activeVehicle &&
         _activeVehicle.batteries &&
         _activeVehicle.batteries.count > 0
             ? _activeVehicle.batteries.get(0)
             : null
 
+
     property real batteryPercent:
+
         activeBattery &&
         !isNaN(activeBattery.percentRemaining.rawValue)
             ? activeBattery.percentRemaining.rawValue
             : NaN
 
+
     property bool batteryAvailable:
+
         activeBattery &&
         !isNaN(activeBattery.percentRemaining.rawValue)
 
-    // =========================================================
-    // STATUS COLOR
-    // =========================================================
-
-    property color statusColor:
-        !vehicleConnected
-            ? "#58616B"
-            : vehicleFlying
-                ? "#D88920"
-                : vehicleArmed
-                    ? "#C8871F"
-                    : "#32934A"
 
     // =========================================================
-    // MAIN GLASS BACKGROUND
+    // COMMON PANEL COLORS
     // =========================================================
 
-    Rectangle {
-        anchors.fill: parent
+    property color panelColor:
+        "#180A1015"
 
-        radius: 8
+    property color panelBorder:
+        "#35FFFFFF"
 
-        color: "#AA071B2D"
+    property color labelColor:
+        "#AFC4D2"
 
-        border.width: 1
-        border.color: "#55D8F3FF"
+    property color valueColor:
+        "#F4F8FA"
 
-        gradient: Gradient {
-
-            GradientStop {
-                position: 0.0
-                color: "#B51D344A"
-            }
-
-            GradientStop {
-                position: 0.45
-                color: "#99314F68"
-            }
-
-            GradientStop {
-                position: 1.0
-                color: "#B5091B2D"
-            }
-        }
-    }
 
     // =========================================================
-    // GLASS TOP HIGHLIGHT
+    // TOP GLASS LINE
     // =========================================================
 
     Rectangle {
+        id: topReflection
+
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
 
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+
         height: 1
 
-        color: "#CCFFFFFF"
-        opacity: 0.35
+        color: "#FFFFFF"
+        opacity: 0.16
 
-        radius: 1
+        z: 10
     }
 
+
     // =========================================================
-    // MAIN ROW
+    // TOOLBAR CONTENT
     // =========================================================
 
     RowLayout {
+        id: toolbarRow
 
         anchors.fill: parent
 
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
-        anchors.topMargin: 3
-        anchors.bottomMargin: 3
+        anchors.leftMargin: 3
+        anchors.rightMargin: 3
+        anchors.topMargin: 2
+        anchors.bottomMargin: 2
 
         spacing: 3
 
+
         // =====================================================
-        // IGC LOGO
+        // HOME BUTTON
         // =====================================================
 
         Rectangle {
+            id: homePanel
 
             Layout.fillHeight: true
             Layout.preferredWidth: 64
 
             radius: 6
 
-            color: "#331B4560"
+            color: "#160B1117"
 
             border.width: 1
             border.color: "#35FFFFFF"
 
+
             QGCToolBarButton {
+                id: homeButton
 
-                anchors.centerIn: parent
+                anchors.fill: parent
 
-                width: 48
-                height: parent.height
-
-                icon.source: "/res/indifloLogo.svg"
-
-                logo: true
+                icon.source: "/res/home.svg"
 
                 onClicked: {
-                    mainWindow.showToolSelectDialog()
+                    mainWindow.showFlyView()
                 }
+
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Home")
+            }
+
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: 6
+
+                color: "#FFFFFF"
+
+                opacity:
+                    homeButton.hovered
+                        ? 0.08
+                        : 0
+
+                visible:
+                    homeButton.hovered
+
+                z: 10
             }
         }
+
 
         // =====================================================
         // MODE
         // =====================================================
 
         Rectangle {
+            id: modePanel
 
             Layout.fillHeight: true
             Layout.preferredWidth: 82
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Column {
-
                 anchors.centerIn: parent
 
                 spacing: 0
+
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: "MODE"
 
-                    color: "#A9D9F2"
+                    color: labelColor
 
                     font.pixelSize: 9
                     font.bold: true
                 }
+
 
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -251,7 +334,7 @@ Rectangle {
                             ? (_activeVehicle.flightMode || "—")
                             : "—"
 
-                    color: "white"
+                    color: valueColor
 
                     font.pixelSize: 13
                     font.bold: true
@@ -259,30 +342,32 @@ Rectangle {
             }
         }
 
+
         // =====================================================
         // GPS POSITION
         // =====================================================
 
         Rectangle {
+            id: gpsPositionPanel
 
             Layout.fillHeight: true
             Layout.preferredWidth: 105
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Row {
-
                 anchors.centerIn: parent
 
                 spacing: 6
 
-                Rectangle {
 
+                Rectangle {
                     width: 13
                     height: 13
 
@@ -290,25 +375,27 @@ Rectangle {
 
                     color:
                         gpsAvailable
-                            ? "#42D96B"
-                            : "#777777"
+                            ? "#35D66A"
+                            : "#69737A"
 
                     border.width: 1
-                    border.color: "#CCFFFFFF"
+                    border.color: "#80FFFFFF"
                 }
 
-                Column {
 
+                Column {
                     spacing: 0
+
 
                     Text {
                         text: "GPS"
 
-                        color: "#A9D9F2"
+                        color: labelColor
 
                         font.pixelSize: 9
                         font.bold: true
                     }
+
 
                     Text {
                         text:
@@ -316,7 +403,7 @@ Rectangle {
                                 ? "POSITION"
                                 : "NO GPS"
 
-                        color: "white"
+                        color: valueColor
 
                         font.pixelSize: 11
                         font.bold: true
@@ -325,58 +412,56 @@ Rectangle {
             }
         }
 
+
         // =====================================================
-        // GPS SATELLITES + HDOP
+        // SATELLITES
         // =====================================================
 
         Rectangle {
+            id: satellitePanel
 
             Layout.fillHeight: true
             Layout.preferredWidth: 92
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Column {
-
                 anchors.centerIn: parent
 
                 spacing: 0
 
-                // GPS label
 
                 Text {
-
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: "GPS"
 
-                    color: "#A9D9F2"
+                    color: labelColor
 
                     font.pixelSize: 8
                     font.bold: true
                 }
 
-                // GPS signal bars
 
                 Row {
-
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     spacing: 2
 
                     height: 18
 
-                    Repeater {
 
+                    Repeater {
                         model: 5
 
-                        Rectangle {
 
+                        Rectangle {
                             width: 4
 
                             height:
@@ -390,16 +475,14 @@ Rectangle {
 
                             color:
                                 gpsAvailable
-                                    ? "#45DFF5"
-                                    : "#606870"
+                                    ? "#42D8F2"
+                                    : "#5E676D"
                         }
                     }
                 }
 
-                // Satellite count
 
                 Text {
-
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text:
@@ -407,151 +490,180 @@ Rectangle {
                             ? satelliteCount + " SAT"
                             : "-- SAT"
 
-                    color: "#E8F8FF"
+                    color: valueColor
 
                     font.pixelSize: 7
-
                     font.bold: true
                 }
 
-                // HDOP
 
                 Text {
-
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text:
-                        gpsAvailable && !isNaN(gpsHdop)
+                        gpsAvailable &&
+                        !isNaN(gpsHdop)
+
                             ? "HDOP " + gpsHdop.toFixed(1)
+
                             : "HDOP --"
 
-                    color: "#A9D9F2"
+                    color: labelColor
 
                     font.pixelSize: 7
                 }
             }
         }
 
+
         // =====================================================
         // CENTRAL FLIGHT STATUS
+        //
+        // GREEN  = FLYING
+        // ORANGE = ARMED
+        // BLUE   = READY
+        // GREY   = DISCONNECTED
         // =====================================================
 
         Rectangle {
+            id: flightStatusPanel
 
             Layout.fillHeight: true
-
             Layout.fillWidth: true
 
             Layout.minimumWidth: 260
 
-            radius: 8
+            radius: 7
 
-            color: statusColor
 
-            opacity: 0.92
+            color:
+                Qt.rgba(
+                    statusColor.r,
+                    statusColor.g,
+                    statusColor.b,
+                    vehicleFlying
+                        ? 0.22
+                        : vehicleArmed
+                            ? 0.16
+                            : 0.11
+                )
+
 
             border.width: 1
-            border.color: "#70FFFFFF"
 
-            // Glass highlight
+            border.color:
+                Qt.rgba(
+                    statusColor.r,
+                    statusColor.g,
+                    statusColor.b,
+                    vehicleFlying
+                        ? 0.70
+                        : 0.40
+                )
+
+
+            // -------------------------------------------------
+            // VERY SUBTLE GLASS REFLECTION
+            // -------------------------------------------------
 
             Rectangle {
-
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.top: parent.top
 
                 height: parent.height * 0.45
 
-                radius: 8
+                radius: 7
 
                 color: "#FFFFFF"
 
-                opacity: 0.07
+                opacity: 0.025
             }
 
-            Column {
 
+            // -------------------------------------------------
+            // STATUS CONTENT
+            // -------------------------------------------------
+
+            Column {
                 anchors.centerIn: parent
 
                 spacing: 0
 
-                Text {
 
+                Text {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: flightStatusText
 
-                    color: "white"
+                    color: "#FFFFFF"
 
                     font.pixelSize: 16
-
                     font.bold: true
                 }
 
-                Text {
 
+                Text {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: flightSubStatus
 
-                    color: "#E8F8FF"
+                    color: statusTextColor
 
                     font.pixelSize: 9
-
                     font.bold: true
                 }
             }
         }
+
 
         // =====================================================
         // RC
         // =====================================================
 
         Rectangle {
+            id: rcPanel
 
             Layout.fillHeight: true
-
             Layout.preferredWidth: 78
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Column {
-
                 anchors.centerIn: parent
 
                 spacing: 0
 
-                Text {
 
+                Text {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: "RC"
 
-                    color: "#A9D9F2"
+                    color: labelColor
 
                     font.pixelSize: 8
-
                     font.bold: true
                 }
 
-                Row {
 
+                Row {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     spacing: 2
 
-                    Repeater {
 
+                    Repeater {
                         model: 5
 
-                        Rectangle {
 
+                        Rectangle {
                             width: 3
 
                             height: 5 + (index * 4)
@@ -560,61 +672,62 @@ Rectangle {
 
                             radius: 2
 
-                            color: "#53DDF4"
+                            color:
+                                "#53DDF4"
                         }
                     }
                 }
             }
         }
+
 
         // =====================================================
         // HD
         // =====================================================
 
         Rectangle {
+            id: hdPanel
 
             Layout.fillHeight: true
-
             Layout.preferredWidth: 78
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Column {
-
                 anchors.centerIn: parent
 
                 spacing: 0
 
-                Text {
 
+                Text {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     text: "HD"
 
-                    color: "#A9D9F2"
+                    color: labelColor
 
                     font.pixelSize: 9
-
                     font.bold: true
                 }
 
-                Row {
 
+                Row {
                     anchors.horizontalCenter: parent.horizontalCenter
 
                     spacing: 2
 
-                    Repeater {
 
+                    Repeater {
                         model: 5
 
-                        Rectangle {
 
+                        Rectangle {
                             width: 3
 
                             height: 5 + (index * 4)
@@ -623,86 +736,100 @@ Rectangle {
 
                             radius: 2
 
-                            color: "#53DDF4"
+                            color:
+                                "#53DDF4"
                         }
                     }
                 }
             }
         }
 
+
         // =====================================================
         // BATTERY
         // =====================================================
 
         Rectangle {
+            id: batteryPanel
 
             Layout.fillHeight: true
-
             Layout.preferredWidth: 92
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Row {
-
                 anchors.centerIn: parent
 
                 spacing: 5
 
-                Text {
 
+                Text {
                     text: "▣"
 
                     color:
+
                         !batteryAvailable
                             ? "#777777"
+
                             : batteryPercent <= 20
-                                ? "#FF5555"
+                                ? "#FF4D55"
+
                                 : batteryPercent <= 40
                                     ? "#FFD45C"
+
                                     : "#55E978"
 
                     font.pixelSize: 20
                 }
 
-                Text {
 
+                Text {
                     text:
+
                         batteryAvailable
                             ? Math.round(batteryPercent) + "%"
+
                             : "--%"
 
-                    color: "white"
+                    color: valueColor
 
                     font.pixelSize: 15
-
                     font.bold: true
                 }
             }
         }
 
+
         // =====================================================
         // SETTINGS
+        //
+        // THIS BUTTON ONLY OPENS THE TOOL/SUBMENU DIALOG.
+        //
+        // IT DOES NOT OPEN HOME.
         // =====================================================
 
         Rectangle {
+            id: settingsPanel
 
             Layout.fillHeight: true
-
             Layout.preferredWidth: 48
 
             radius: 6
 
-            color: "#331B4560"
+            color: panelColor
 
             border.width: 1
-            border.color: "#25FFFFFF"
+            border.color: panelBorder
+
 
             Text {
+                id: settingsIcon
 
                 anchors.centerIn: parent
 
@@ -713,39 +840,46 @@ Rectangle {
                 font.pixelSize: 21
             }
 
+
             MouseArea {
+                id: settingsMouseArea
 
                 anchors.fill: parent
 
                 hoverEnabled: true
 
+                cursorShape: Qt.PointingHandCursor
+
+
                 onClicked: {
                     mainWindow.showToolSelectDialog()
                 }
+            }
 
-                Rectangle {
 
-                    anchors.fill: parent
+            Rectangle {
+                anchors.fill: parent
 
-                    radius: 6
+                radius: 6
 
-                    color: "#FFFFFF"
+                color: "#FFFFFF"
 
-                    opacity:
-                        parent.containsMouse
-                            ? 0.10
-                            : 0
-                }
+                opacity:
+                    settingsMouseArea.containsMouse
+                        ? 0.08
+                        : 0
+
+                z: 10
             }
         }
     }
 
+
     // =========================================================
-    // PARAMETER DOWNLOAD PROGRESS
+    // DOWNLOAD PROGRESS
     // =========================================================
 
     Rectangle {
-
         anchors.bottom: parent.bottom
 
         anchors.left: parent.left
@@ -759,6 +893,8 @@ Rectangle {
 
         color: "#63E7F5"
 
-        opacity: 0.85
+        opacity: 0.60
+
+        z: 20
     }
 }

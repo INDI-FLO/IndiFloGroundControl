@@ -6,17 +6,22 @@ Rectangle {
     id: root
 
     // =========================================================
-    // COMPACT GIMBAL PANEL
+    // GIMBAL PANEL
     // =========================================================
 
-    width: 163
-    height: 215
+    width: 180
+    height: 235
 
-    color: "#88000000"
-    radius: 18
+    // DARKER TRANSLUCENT GLASS
+    // 70% opaque black / 30% transparent
+    color: "#B3000000"
 
+    radius: 20
+    clip: true
+
+    // ONLY ONE OUTER BORDER
     border.width: 1
-    border.color: "#777777"
+    border.color: "#55FFFFFF"
 
     // =========================================================
     // ACTIVE VEHICLE
@@ -24,6 +29,7 @@ Rectangle {
 
     property var _activeVehicle:
         QGroundControl.multiVehicleManager.activeVehicle
+
 
     // =========================================================
     // JOYSTICK SETTINGS
@@ -36,20 +42,17 @@ Rectangle {
 
     property bool joystickDragging: false
 
+
     // =========================================================
     // BUTTON STEP SETTINGS
     // =========================================================
 
-    // Requested movement for every button click.
     property real buttonStepDegrees: 5.0
 
-    // Duration for one discrete button command.
-    //
-    // This is intentionally short. The actual angular response
-    // depends on the gimbal controller's configured rate.
     property int buttonCommandDuration: 150
 
     property bool buttonCommandActive: false
+
 
     // =========================================================
     // GIMBAL CONTROLLER
@@ -69,6 +72,7 @@ Rectangle {
 
         return _activeVehicle.gimbalController
     }
+
 
     // =========================================================
     // NORMAL JOYSTICK COMMAND
@@ -91,14 +95,15 @@ Rectangle {
         controller.gimbalOnScreenControl(
             pan,
             tilt,
-            false,  // clickAndPoint
-            true,   // clickAndDrag
-            true,   // rateControl
-            false,  // retract
-            false,  // neutral
-            false   // yawlock
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
         )
     }
+
 
     // =========================================================
     // STOP JOYSTICK COMMAND
@@ -115,30 +120,18 @@ Rectangle {
         controller.gimbalOnScreenControl(
             0,
             0,
-            false,  // clickAndPoint
-            true,   // clickAndDrag
-            true,   // rateControl
-            false,  // retract
-            false,  // neutral
-            false   // yawlock
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
         )
     }
 
+
     // =========================================================
-    // DISCRETE 5 DEGREE BUTTON COMMAND
-    // =========================================================
-    //
-    // direction:
-    //
-    //   +1 = right / up
-    //   -1 = left / down
-    //
-    // Because the current QGC interface is rate based, a button
-    // click is implemented as a short rate command followed by
-    // a stop command.
-    //
-    // buttonStepDegrees is kept explicit here so the requested
-    // 5-degree step is easy to change later.
+    // DISCRETE BUTTON COMMAND
     // =========================================================
 
     function buttonStep(panDirection, tiltDirection) {
@@ -166,16 +159,17 @@ Rectangle {
         controller.gimbalOnScreenControl(
             panDirection,
             tiltDirection,
-            false,  // clickAndPoint
-            true,   // clickAndDrag
-            true,   // rateControl
-            false,  // retract
-            false,  // neutral
-            false   // yawlock
+            false,
+            true,
+            true,
+            false,
+            false,
+            false
         )
 
         buttonTimer.restart()
     }
+
 
     // =========================================================
     // BUTTON COMMAND TIMER
@@ -201,6 +195,7 @@ Rectangle {
             )
         }
     }
+
 
     // =========================================================
     // JOYSTICK MOVEMENT
@@ -233,10 +228,6 @@ Rectangle {
         root.stickX = dx
         root.stickY = dy
 
-        // =====================================================
-        // NORMAL JOYSTICK COMMAND
-        // =====================================================
-
         var panCommand =
             dx / root.stickDistance
 
@@ -248,6 +239,7 @@ Rectangle {
             tiltCommand
         )
     }
+
 
     // =========================================================
     // RESET JOYSTICK
@@ -261,26 +253,45 @@ Rectangle {
         root.stopGimbal()
     }
 
+
     // =========================================================
-    // TITLE
+    // TITLE GLASS
     // =========================================================
 
-    Text {
-        id: title
+    Rectangle {
+        id: titlePanel
 
-        text: qsTr("GIMBAL CONTROL")
-
-        color: "white"
-
-        font.pixelSize: 12
-        font.bold: true
+        width: parent.width - 24
+        height: 32
 
         anchors.top: parent.top
-        anchors.topMargin: 7
+        anchors.topMargin: 8
 
         anchors.horizontalCenter:
             parent.horizontalCenter
+
+        radius: 9
+
+        // DARKER TITLE BACKGROUND
+        color: "#30000000"
+
+        border.width: 1
+        border.color: "#45FFFFFF"
+
+
+        Text {
+            anchors.centerIn: parent
+
+            text: qsTr("GIMBAL CONTROL")
+
+            color: "#F5FFFFFF"
+
+            font.pixelSize: 11
+            font.bold: true
+            font.letterSpacing: 1.0
+        }
     }
+
 
     // =========================================================
     // GIMBAL PAD
@@ -289,19 +300,20 @@ Rectangle {
     Item {
         id: gimbalPad
 
-        width: 145
-        height: 145
+        width: 155
+        height: 155
 
         anchors.horizontalCenter:
             parent.horizontalCenter
 
         anchors.top:
-            title.bottom
+            titlePanel.bottom
 
-        anchors.topMargin: 28
+        anchors.topMargin: 12
+
 
         // =====================================================
-        // OUTER JOYSTICK CIRCLE
+        // OUTER GLASS JOYSTICK CIRCLE
         // =====================================================
 
         Rectangle {
@@ -314,10 +326,70 @@ Rectangle {
 
             radius: width / 2
 
-            color: "#22000000"
+            // DARKER JOYSTICK BACKGROUND
+            color: "#30000000"
 
-            border.width: 2
-            border.color: "#cccccc"
+            border.width: 1
+            border.color: "#65FFFFFF"
+
+
+            // =================================================
+            // INNER GLASS RING
+            // =================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                anchors.margins: 7
+
+                radius: width / 2
+
+                color: "#18000000"
+
+                border.width: 1
+                border.color: "#35FFFFFF"
+            }
+
+
+            // =================================================
+            // VERTICAL CENTER GUIDE
+            // =================================================
+
+            Rectangle {
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
+
+                anchors.top:
+                    parent.top
+
+                anchors.bottom:
+                    parent.bottom
+
+                width: 1
+
+                color: "#35FFFFFF"
+            }
+
+
+            // =================================================
+            // HORIZONTAL CENTER GUIDE
+            // =================================================
+
+            Rectangle {
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
+                anchors.left:
+                    parent.left
+
+                anchors.right:
+                    parent.right
+
+                height: 1
+
+                color: "#35FFFFFF"
+            }
+
 
             // =================================================
             // JOYSTICK DRAG AREA
@@ -369,6 +441,7 @@ Rectangle {
             }
         }
 
+
         // =====================================================
         // MOVING JOYSTICK
         // =====================================================
@@ -376,17 +449,17 @@ Rectangle {
         Rectangle {
             id: centerStick
 
-            width: 38
-            height: 38
+            width: 42
+            height: 42
 
             anchors.centerIn: circle
 
             radius: width / 2
 
-            color: "#4488ff"
+            color: "#45FFFFFF"
 
-            border.width: 2
-            border.color: "white"
+            border.width: 1
+            border.color: "#B0FFFFFF"
 
             z: 5
 
@@ -395,6 +468,7 @@ Rectangle {
                 x: root.stickX
                 y: root.stickY
             }
+
 
             Behavior on x {
 
@@ -406,6 +480,7 @@ Rectangle {
                 }
             }
 
+
             Behavior on y {
 
                 NumberAnimation {
@@ -415,7 +490,42 @@ Rectangle {
                         : 120
                 }
             }
+
+
+            // =================================================
+            // INNER KNOB
+            // =================================================
+
+            Rectangle {
+                anchors.centerIn: parent
+
+                width: 12
+                height: 12
+
+                radius: 6
+
+                color: "#E5FFFFFF"
+            }
+
+
+            // =================================================
+            // KNOB INNER BORDER
+            // =================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                anchors.margins: 4
+
+                radius: width / 2
+
+                color: "transparent"
+
+                border.width: 1
+                border.color: "#40FFFFFF"
+            }
         }
+
 
         // =====================================================
         // UP BUTTON
@@ -424,8 +534,8 @@ Rectangle {
         RoundButton {
             id: upButton
 
-            width: 34
-            height: 34
+            width: 32
+            height: 32
 
             anchors.horizontalCenter:
                 circle.horizontalCenter
@@ -433,11 +543,12 @@ Rectangle {
             anchors.bottom:
                 circle.top
 
-            anchors.bottomMargin: -10
+            anchors.bottomMargin: -9
 
             text: "▲"
 
             z: 10
+
 
             background: Rectangle {
 
@@ -445,20 +556,26 @@ Rectangle {
 
                 color:
                     upButton.pressed
-                    ? "#6699ff"
-                    : "#555555"
+                    ? "#55FFFFFF"
+                    : "#25FFFFFF"
 
                 border.width: 1
-                border.color: "#dddddd"
+
+                border.color:
+                    upButton.pressed
+                    ? "#C0FFFFFF"
+                    : "#65FFFFFF"
             }
+
 
             contentItem: Text {
 
                 text: upButton.text
 
-                color: "white"
+                color: "#F5FFFFFF"
 
-                font.pixelSize: 15
+                font.pixelSize: 13
+                font.bold: true
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -466,6 +583,7 @@ Rectangle {
                 verticalAlignment:
                     Text.AlignVCenter
             }
+
 
             onClicked: {
 
@@ -478,6 +596,7 @@ Rectangle {
             }
         }
 
+
         // =====================================================
         // DOWN BUTTON
         // =====================================================
@@ -485,8 +604,8 @@ Rectangle {
         RoundButton {
             id: downButton
 
-            width: 34
-            height: 34
+            width: 32
+            height: 32
 
             anchors.horizontalCenter:
                 circle.horizontalCenter
@@ -494,11 +613,12 @@ Rectangle {
             anchors.top:
                 circle.bottom
 
-            anchors.topMargin: -10
+            anchors.topMargin: -9
 
             text: "▼"
 
             z: 10
+
 
             background: Rectangle {
 
@@ -506,20 +626,26 @@ Rectangle {
 
                 color:
                     downButton.pressed
-                    ? "#6699ff"
-                    : "#555555"
+                    ? "#55FFFFFF"
+                    : "#25FFFFFF"
 
                 border.width: 1
-                border.color: "#dddddd"
+
+                border.color:
+                    downButton.pressed
+                    ? "#C0FFFFFF"
+                    : "#65FFFFFF"
             }
+
 
             contentItem: Text {
 
                 text: downButton.text
 
-                color: "white"
+                color: "#F5FFFFFF"
 
-                font.pixelSize: 15
+                font.pixelSize: 13
+                font.bold: true
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -527,6 +653,7 @@ Rectangle {
                 verticalAlignment:
                     Text.AlignVCenter
             }
+
 
             onClicked: {
 
@@ -539,6 +666,7 @@ Rectangle {
             }
         }
 
+
         // =====================================================
         // LEFT BUTTON
         // =====================================================
@@ -546,8 +674,8 @@ Rectangle {
         RoundButton {
             id: leftButton
 
-            width: 34
-            height: 34
+            width: 32
+            height: 32
 
             anchors.verticalCenter:
                 circle.verticalCenter
@@ -555,11 +683,12 @@ Rectangle {
             anchors.right:
                 circle.left
 
-            anchors.rightMargin: -10
+            anchors.rightMargin: -9
 
             text: "◀"
 
             z: 10
+
 
             background: Rectangle {
 
@@ -567,20 +696,26 @@ Rectangle {
 
                 color:
                     leftButton.pressed
-                    ? "#6699ff"
-                    : "#555555"
+                    ? "#55FFFFFF"
+                    : "#25FFFFFF"
 
                 border.width: 1
-                border.color: "#dddddd"
+
+                border.color:
+                    leftButton.pressed
+                    ? "#C0FFFFFF"
+                    : "#65FFFFFF"
             }
+
 
             contentItem: Text {
 
                 text: leftButton.text
 
-                color: "white"
+                color: "#F5FFFFFF"
 
-                font.pixelSize: 15
+                font.pixelSize: 13
+                font.bold: true
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -588,6 +723,7 @@ Rectangle {
                 verticalAlignment:
                     Text.AlignVCenter
             }
+
 
             onClicked: {
 
@@ -600,6 +736,7 @@ Rectangle {
             }
         }
 
+
         // =====================================================
         // RIGHT BUTTON
         // =====================================================
@@ -607,8 +744,8 @@ Rectangle {
         RoundButton {
             id: rightButton
 
-            width: 34
-            height: 34
+            width: 32
+            height: 32
 
             anchors.verticalCenter:
                 circle.verticalCenter
@@ -616,11 +753,12 @@ Rectangle {
             anchors.left:
                 circle.right
 
-            anchors.leftMargin: -10
+            anchors.leftMargin: -9
 
             text: "▶"
 
             z: 10
+
 
             background: Rectangle {
 
@@ -628,20 +766,26 @@ Rectangle {
 
                 color:
                     rightButton.pressed
-                    ? "#6699ff"
-                    : "#555555"
+                    ? "#55FFFFFF"
+                    : "#25FFFFFF"
 
                 border.width: 1
-                border.color: "#dddddd"
+
+                border.color:
+                    rightButton.pressed
+                    ? "#C0FFFFFF"
+                    : "#65FFFFFF"
             }
+
 
             contentItem: Text {
 
                 text: rightButton.text
 
-                color: "white"
+                color: "#F5FFFFFF"
 
-                font.pixelSize: 15
+                font.pixelSize: 13
+                font.bold: true
 
                 horizontalAlignment:
                     Text.AlignHCenter
@@ -649,6 +793,7 @@ Rectangle {
                 verticalAlignment:
                     Text.AlignVCenter
             }
+
 
             onClicked: {
 

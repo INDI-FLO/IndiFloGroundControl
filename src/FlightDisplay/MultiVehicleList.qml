@@ -150,15 +150,6 @@ Item {
                     anchors.margins:    _margin
                     spacing:            _margin
 
-                    IntegratedCompassAttitude {
-                        id: compassWidget
-                        compassRadius:              _widgetHeight / 2 - attitudeSize / 2
-                        compassBorder:              0
-                        attitudeSize:               ScreenTools.defaultFontPixelWidth / 2
-                        attitudeSpacing:            attitudeSize / 2
-                        usedByMultipleVehicleList:   true
-                        vehicle:                     _vehicle
-                    }
 
                     QGCLabel {
                         text: " | "
@@ -183,7 +174,6 @@ Item {
 
                     ColumnLayout {
                         spacing:              _margin
-                        Layout.rightMargin:   compassWidget.width / 4
                         Layout.alignment:     Qt.AlignCenter
 
                         FlightModeMenu {

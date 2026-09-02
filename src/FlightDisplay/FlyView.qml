@@ -82,7 +82,13 @@ Item {
     FlyViewToolBar {
         id:         toolbar
         visible:    !QGroundControl.videoManager.fullScreen
-    }
+        z: 100    
+}
+
+
+// ============================================================
+// INDI-FLO GLASS TELEMETRY BAR
+// ============================================================
 
     Item {
         id:                 mapHolder
@@ -90,7 +96,7 @@ Item {
         anchors.bottom:     parent.bottom
         anchors.left:       parent.left
         anchors.right:      parent.right
-
+           z: 0
         FlyViewMap {
             id:                     mapControl
             planMasterController:   _planController
@@ -101,6 +107,46 @@ Item {
             mapName:                "FlightDisplayView"
             enabled:                !viewer3DWindow.isOpen
         }
+// =============================================================
+// INDIFLO CIRCULAR ARTIFICIAL HORIZON
+// Small 65% glass instrument
+// Positioned below the left action toolbar
+// =============================================================
+
+ArtificialHorizon {
+    id: artificialHorizon
+
+    width: 195
+    height: 215
+
+    anchors.left: parent.left
+    anchors.top: parent.top
+
+    anchors.leftMargin: 42
+
+    /*
+     * This places the horizon below:
+     *
+     * Takeoff/Land
+     * Return
+     * Pause/Actions
+     *
+     * Increase 155 if you want it lower.
+     */
+
+    anchors.topMargin:
+        toolbar.height + 155
+
+    z: 50
+
+    visible:
+        !QGroundControl.videoManager.fullScreen
+}
+
+
+
+
+
 
         FlyViewVideo {
             id:         videoControl

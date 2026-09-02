@@ -83,6 +83,7 @@ qt_add_qml_module(QGroundControlControlsModule
         FactSliderPanel.qml
         FileButton.qml
         FlightModeMenu.qml
+        GlassPanel.qml
         HeightIndicator.qml
         HorizontalFactValueGrid.qml
         IndiFloGlassPanel.qml

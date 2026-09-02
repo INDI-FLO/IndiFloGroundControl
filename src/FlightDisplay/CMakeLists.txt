@@ -5,6 +5,9 @@ qt_add_qml_module(FlightDisplayModule
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
+        IndiFloAttitudePanel.qml
+        IndiFloYawIndicator.qml
+        ArtificialHorizon.qml
         GimbalControl.qml
         CustomGuidedActionsController.qml
         DefaultChecklist.qml
