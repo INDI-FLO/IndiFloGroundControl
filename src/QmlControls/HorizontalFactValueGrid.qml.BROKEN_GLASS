@@ -1,0 +1,437 @@
+/****************************************************************************
+ *
+ * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
+
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import QtQml
+
+import QGroundControl.Templates as T
+import QGroundControl.Controls
+import QGroundControl.ScreenTools
+import QGroundControl.Controllers
+import QGroundControl.Palette
+import QGroundControl.FlightMap
+import QGroundControl
+
+T.HorizontalFactValueGrid {
+    id: _root
+
+    Layout.preferredWidth: topLayout.width
+    Layout.preferredHeight: topLayout.height
+
+    property bool settingsUnlocked: false
+
+    property real _margins: ScreenTools.defaultFontPixelWidth / 2
+    property int _rowMax: 2
+    property real _rowButtonWidth: ScreenTools.minTouchPixels
+    property real _rowButtonHeight: ScreenTools.minTouchPixels / 2
+    property real _editButtonSpacing: 2
+
+    QGCPalette {
+        id: qgcPal
+        colorGroupEnabled: enabled
+    }
+
+    // =========================================================
+    // MAIN LAYOUT
+    // =========================================================
+
+    ColumnLayout {
+        id: topLayout
+
+        spacing: 0
+
+        // =====================================================
+        // TELEMETRY ROW
+        // =====================================================
+
+        RowLayout {
+            spacing: parent.spacing
+
+            // =================================================
+            // GLASS TELEMETRY PANEL
+            // =================================================
+
+            Rectangle {
+                id: telemetryCard
+
+                Layout.fillHeight: true
+
+                implicitWidth: telemetryGrid.implicitWidth + 20
+                implicitHeight: telemetryGrid.implicitHeight + 14
+
+                radius: 14
+
+                clip: true
+
+                // -------------------------------------------------
+                // TRANSPARENT LIQUID GLASS BACKGROUND
+                // -------------------------------------------------
+
+                gradient: Gradient {
+                    orientation: Gradient.Vertical
+
+                    GradientStop {
+                        position: 0.0
+                        color: "#20FFFFFF"
+                    }
+
+                    GradientStop {
+                        position: 0.35
+                        color: "#0DFFFFFF"
+                    }
+
+                    GradientStop {
+                        position: 0.70
+                        color: "#08FFFFFF"
+                    }
+
+                    GradientStop {
+                        position: 1.0
+                        color: "#15FFFFFF"
+                    }
+                }
+
+                // -------------------------------------------------
+                // GLASS BORDER
+                // -------------------------------------------------
+
+                border.width: 1
+                border.color: "#65FFFFFF"
+
+                // -------------------------------------------------
+                // TOP GLASS HIGHLIGHT
+                // -------------------------------------------------
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    height: 1
+
+                    color: "#BFFFFFFF"
+
+                    opacity: 0.65
+                }
+
+                // -------------------------------------------------
+                // INNER GLASS HIGHLIGHT
+                // -------------------------------------------------
+
+                Rectangle {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+
+                    height: parent.height * 0.35
+
+                    radius: parent.radius
+
+                    color: "#FFFFFF"
+
+                    opacity: 0.025
+                }
+
+                // =================================================
+                // ACTUAL TELEMETRY GRID
+                // =================================================
+
+                GridLayout {
+                    id: telemetryGrid
+
+                    anchors.centerIn: parent
+
+                    rows: object.count
+                    columns: 2
+
+                    rowSpacing: 2
+                    columnSpacing: 8
+
+                    flow: GridLayout.TopToBottom
+
+                    // =============================================
+                    // LABELS
+                    // =============================================
+
+                    Repeater {
+                        id: labelRepeater
+
+                        model: object
+
+                        InstrumentValueLabel {
+                            Layout.fillHeight: true
+                            Layout.alignment: Qt.AlignRight
+
+                            instrumentValueData: object
+                        }
+                    }
+
+                    // =============================================
+                    // VALUES
+                    // =============================================
+
+                    Repeater {
+                        id: valueRepeater
+
+                        model: object
+
+                        property real _index: index
+                        property real maxWidth: 0
+                        property var lastCheck: new Date().getTime()
+
+                        function recalcWidth() {
+                            var newMaxWidth = 0
+
+                            for (var i = 0; i < valueRepeater.count; i++) {
+                                var item = valueRepeater.itemAt(i)
+
+                                if (item) {
+                                    newMaxWidth = Math.max(
+                                        newMaxWidth,
+                                        item.contentWidth
+                                    )
+                                }
+                            }
+
+                            maxWidth = newMaxWidth
+                        }
+
+                        InstrumentValueValue {
+                            Layout.fillHeight: true
+                            Layout.alignment: Qt.AlignLeft
+                            Layout.preferredWidth: valueRepeater.maxWidth
+
+                            instrumentValueData: object
+
+                            property real lastContentWidth: 0
+
+                            Component.onCompleted: {
+                                valueRepeater.maxWidth =
+                                    Math.max(
+                                        valueRepeater.maxWidth,
+                                        contentWidth
+                                    )
+
+                                lastContentWidth = contentWidth
+                            }
+
+                            onContentWidthChanged: {
+                                valueRepeater.maxWidth =
+                                    Math.max(
+                                        valueRepeater.maxWidth,
+                                        contentWidth
+                                    )
+
+                                lastContentWidth = contentWidth
+
+                                var currentTime =
+                                    new Date().getTime()
+
+                                if (
+                                    currentTime -
+                                    valueRepeater.lastCheck >
+                                    30 * 1000
+                                ) {
+                                    valueRepeater.lastCheck =
+                                        currentTime
+
+                                    valueRepeater.recalcWidth()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // =====================================================
+            // COLUMN ADD / REMOVE BUTTONS
+            // =====================================================
+
+            ColumnLayout {
+                spacing: 1
+
+                visible: settingsUnlocked
+
+                QGCButton {
+                    Layout.preferredWidth:
+                        ScreenTools.minTouchPixels
+
+                    Layout.fillHeight: true
+
+                    topPadding: 0
+                    bottomPadding: 0
+                    leftPadding: 0
+                    rightPadding: 0
+
+                    text: qsTr("+")
+
+                    enabled:
+                        (_root.width +
+                        (2 *
+                        (_rowButtonWidth + _margins))) <
+                        screen.width
+
+                    onClicked: appendColumn()
+                }
+
+                QGCButton {
+                    Layout.preferredWidth:
+                        ScreenTools.minTouchPixels
+
+                    Layout.fillHeight: true
+
+                    topPadding: 0
+                    bottomPadding: 0
+                    leftPadding: 0
+                    rightPadding: 0
+
+                    text: qsTr("-")
+
+                    enabled:
+                        _root.columns.count > 1
+
+                    onClicked:
+                        deleteLastColumn()
+                }
+            }
+        }
+
+        // =========================================================
+        // ROW ADD / REMOVE BUTTONS
+        // =========================================================
+
+        RowLayout {
+            Layout.fillWidth: true
+
+            spacing: 1
+
+            visible: settingsUnlocked
+
+            QGCButton {
+                Layout.fillWidth: true
+
+                Layout.preferredHeight:
+                    ScreenTools.minTouchPixels
+
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+
+                text: qsTr("+")
+
+                enabled:
+                    (_root.height +
+                    (2 *
+                    (_rowButtonHeight + _margins))) <
+                    (screen.height -
+                    ScreenTools.toolbarHeight)
+
+                onClicked:
+                    appendRow()
+            }
+
+            QGCButton {
+                Layout.fillWidth: true
+
+                Layout.preferredHeight:
+                    parent.height
+
+                topPadding: 0
+                bottomPadding: 0
+                leftPadding: 0
+                rightPadding: 0
+
+                text: qsTr("-")
+
+                enabled:
+                    _root.rowCount > 1
+
+                onClicked:
+                    deleteLastRow()
+            }
+        }
+    }
+
+    // =========================================================
+    // SETTINGS MOUSE AREA
+    // =========================================================
+
+    QGCMouseArea {
+        x: labelValueColumnLayout.x
+        y: labelValueColumnLayout.y
+
+        width: labelValueColumnLayout.width
+        height: labelValueColumnLayout.height
+
+        visible: settingsUnlocked
+
+        cursorShape:
+            Qt.PointingHandCursor
+
+        property var mappedLabelValueColumnLayoutPosition:
+            _root.mapFromItem(
+                labelValueColumnLayout,
+                labelValueColumnLayout.x,
+                labelValueColumnLayout.y
+            )
+
+        onClicked: function(mouse) {
+
+            var columnGridLayoutItem =
+                labelValueColumnLayout.childAt(
+                    mouse.x,
+                    mouse.y
+                )
+
+            if (!columnGridLayoutItem) {
+                return
+            }
+
+            var mappedMouse =
+                labelValueColumnLayout.mapToItem(
+                    columnGridLayoutItem,
+                    mouse.x,
+                    mouse.y
+                )
+
+            var labelOrDataItem =
+                columnGridLayoutItem.childAt(
+                    mappedMouse.x,
+                    mappedMouse.y
+                )
+
+            if (
+                labelOrDataItem &&
+                labelOrDataItem.instrumentValueData !== undefined
+            ) {
+                valueEditDialog.createObject(
+                    mainWindow,
+                    {
+                        instrumentValueData:
+                            labelOrDataItem.instrumentValueData
+                    }
+                ).open()
+            }
+        }
+    }
+
+    // =========================================================
+    // VALUE EDIT DIALOG
+    // =========================================================
+
+    Component {
+        id: valueEditDialog
+
+        InstrumentValueEditDialog {
+        }
+    }
+}

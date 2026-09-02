@@ -1,0 +1,685 @@
+/****************************************************************************
+ *
+ * IndiFlo Ground Control
+ *
+ * Artificial Horizon
+ *
+ ****************************************************************************/
+
+import QtQuick
+import QtQuick.Controls
+
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Palette
+import QGroundControl.MultiVehicleManager
+import QGroundControl.ScreenTools
+
+
+Item {
+
+    id: root
+
+    width: 300
+    height: 300
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    property real rollAngle:
+        _activeVehicle && !isNaN(_activeVehicle.roll.rawValue)
+            ? _activeVehicle.roll.rawValue
+            : 0
+
+    property real pitchAngle:
+        _activeVehicle && !isNaN(_activeVehicle.pitch.rawValue)
+            ? _activeVehicle.pitch.rawValue
+            : 0
+
+
+    // =========================================================
+    // OUTER GLASS PANEL
+    // =========================================================
+
+    Rectangle {
+
+        id: glassPanel
+
+        anchors.fill: parent
+
+        radius: 18
+
+        color: "#180A141D"
+
+        border.width: 1
+
+        border.color: "#45FFFFFF"
+
+        antialiasing: true
+    }
+
+
+    // =========================================================
+    // HORIZON WINDOW
+    // =========================================================
+
+    Item {
+
+        id: horizonWindow
+
+        anchors.centerIn: parent
+
+        width: parent.width - 28
+
+        height: parent.height - 48
+
+        clip: true
+
+
+        Rectangle {
+
+            id: horizonBackground
+
+            anchors.fill: parent
+
+            color: "#071018"
+
+            radius: 12
+        }
+
+
+        // =====================================================
+        // MOVING ARTIFICIAL HORIZON
+        // =====================================================
+
+        Item {
+
+            id: horizon
+
+            width: horizonWindow.width * 4
+
+            height: horizonWindow.height * 8
+
+            anchors.centerIn: horizonWindow
+
+
+            property real pitchOffset:
+                pitchAngle *
+                horizonWindow.height /
+                45.0
+
+
+            Rectangle {
+
+                id: sky
+
+                anchors.fill: parent
+
+                color: "#174B70"
+            }
+
+
+            Rectangle {
+
+                id: ground
+
+                anchors.left: parent.left
+
+                anchors.right: parent.right
+
+                anchors.bottom: parent.bottom
+
+                height: parent.height / 2
+
+                color: "#4A4032"
+            }
+
+
+            // Horizon line
+
+            Rectangle {
+
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
+
+                y:
+                    parent.height / 2 - 1
+
+                width:
+                    parent.width
+
+                height:
+                    2
+
+                color:
+                    "#FFFFFF"
+            }
+
+
+            // =================================================
+            // PITCH LADDER
+            // =================================================
+
+            Item {
+
+                id: pitchLadder
+
+                anchors.centerIn: parent
+
+                width:
+                    parent.width
+
+                height:
+                    parent.height
+
+
+                Repeater {
+
+                    model: 9
+
+
+                    Item {
+
+                        property int pitchValue:
+                            (index - 4) * 10
+
+
+                        property real pitchY:
+
+                            parent.height / 2 -
+                            pitchValue *
+                            horizonWindow.height /
+                            45.0
+
+
+                        x:
+                            parent.width / 2 - 45
+
+                        y:
+                            pitchY - 1
+
+
+                        visible:
+                            pitchValue !== 0
+
+
+                        Rectangle {
+
+                            width:
+                                pitchValue % 20 === 0
+                                    ? 70
+                                    : 45
+
+                            height:
+                                2
+
+                            color:
+                                "#E8FFFFFF"
+
+
+                            anchors.horizontalCenter:
+                                parent.horizontalCenter
+                        }
+
+
+                        Text {
+
+                            anchors.right:
+                                parent.left
+
+                            anchors.rightMargin:
+                                8
+
+                            anchors.verticalCenter:
+                                parent.verticalCenter
+
+                            text:
+                                Math.abs(pitchValue)
+
+                            color:
+                                "#E8FFFFFF"
+
+                            font.pixelSize:
+                                10
+
+                            font.bold:
+                                true
+                        }
+
+
+                        Text {
+
+                            anchors.left:
+                                parent.right
+
+                            anchors.leftMargin:
+                                8
+
+                            anchors.verticalCenter:
+                                parent.verticalCenter
+
+                            text:
+                                Math.abs(pitchValue)
+
+                            color:
+                                "#E8FFFFFF"
+
+                            font.pixelSize:
+                                10
+
+                            font.bold:
+                                true
+                        }
+                    }
+                }
+            }
+
+
+            transform: [
+
+                Translate {
+
+                    y:
+                        pitchOffset
+                },
+
+                Rotation {
+
+                    origin.x:
+                        horizon.width / 2
+
+                    origin.y:
+                        horizon.height / 2
+
+                    angle:
+                        -rollAngle
+                }
+            ]
+        }
+
+
+        // =====================================================
+        // AIRCRAFT REFERENCE
+        // =====================================================
+
+        Item {
+
+            id: aircraftSymbol
+
+            anchors.centerIn:
+                horizonWindow
+
+            width:
+                120
+
+            height:
+                50
+
+
+            Rectangle {
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
+
+                width:
+                    46
+
+                height:
+                    4
+
+                radius:
+                    2
+
+                color:
+                    "#FFD34D"
+            }
+
+
+            Rectangle {
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
+                anchors.right:
+                    parent.horizontalCenter
+
+                width:
+                    32
+
+                height:
+                    4
+
+                radius:
+                    2
+
+                color:
+                    "#FFD34D"
+            }
+
+
+            Rectangle {
+
+                anchors.verticalCenter:
+                    parent.verticalCenter
+
+                anchors.left:
+                    parent.horizontalCenter
+
+                width:
+                    32
+
+                height:
+                    4
+
+                radius:
+                    2
+
+                color:
+                    "#FFD34D"
+            }
+
+
+            Rectangle {
+
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
+
+                anchors.top:
+                    parent.verticalCenter
+
+                width:
+                    4
+
+                height:
+                    16
+
+                radius:
+                    2
+
+                color:
+                    "#FFD34D"
+            }
+        }
+
+
+        // =====================================================
+        // ROLL SCALE
+        // =====================================================
+
+        Item {
+
+            id: rollScale
+
+            anchors.top:
+                horizonWindow.top
+
+            anchors.horizontalCenter:
+                horizonWindow.horizontalCenter
+
+            width:
+                horizonWindow.width
+
+            height:
+                52
+
+
+            Repeater {
+
+                model: 7
+
+
+                Rectangle {
+
+                    property real rollValue:
+                        (index - 3) * 15
+
+
+                    width:
+                        rollValue % 30 === 0
+                            ? 3
+                            : 2
+
+                    height:
+                        rollValue % 30 === 0
+                            ? 15
+                            : 9
+
+                    color:
+                        "#FFFFFF"
+
+                    x:
+                        parent.width / 2 +
+                        Math.sin(
+                            rollValue * Math.PI / 180
+                        ) *
+                        85 -
+                        width / 2
+
+                    y:
+                        8
+
+                    rotation:
+                        rollValue
+                }
+            }
+
+
+            // Roll pointer
+
+            Canvas {
+
+                anchors.horizontalCenter:
+                    parent.horizontalCenter
+
+                y:
+                    2
+
+                width:
+                    20
+
+                height:
+                    20
+
+
+                onPaint: {
+
+                    var ctx =
+                        getContext("2d")
+
+                    ctx.clearRect(
+                        0,
+                        0,
+                        width,
+                        height
+                    )
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(
+                        width / 2,
+                        height
+                    )
+
+                    ctx.lineTo(
+                        2,
+                        2
+                    )
+
+                    ctx.lineTo(
+                        width - 2,
+                        2
+                    )
+
+                    ctx.closePath()
+
+                    ctx.fillStyle =
+                        "#FFD34D"
+
+                    ctx.fill()
+                }
+            }
+        }
+
+
+        // =====================================================
+        // GLASS OVERLAY
+        // =====================================================
+
+        Rectangle {
+
+            anchors.fill:
+                parent
+
+            radius:
+                12
+
+            color:
+                "#08FFFFFF"
+
+            border.width:
+                1
+
+            border.color:
+                "#35FFFFFF"
+        }
+
+
+        // =====================================================
+        // CENTER CROSSHAIR
+        // =====================================================
+
+        Rectangle {
+
+            anchors.centerIn:
+                parent
+
+            width:
+                8
+
+            height:
+                8
+
+            radius:
+                4
+
+            color:
+                "#FFFFFF"
+
+            opacity:
+                0.8
+        }
+    }
+
+
+    // =========================================================
+    // TITLE
+    // =========================================================
+
+    Rectangle {
+
+        id: titleBackground
+
+        anchors.top:
+            parent.top
+
+        anchors.horizontalCenter:
+            parent.horizontalCenter
+
+        width:
+            150
+
+        height:
+            28
+
+        radius:
+            8
+
+        color:
+            "#260B1720"
+
+        border.width:
+            1
+
+        border.color:
+            "#30FFFFFF"
+
+
+        Text {
+
+            anchors.centerIn:
+                parent
+
+            text:
+                "ARTIFICIAL HORIZON"
+
+            color:
+                "#EAF8FF"
+
+            font.pixelSize:
+                10
+
+            font.bold:
+                true
+
+        }
+    }
+
+
+    // =========================================================
+    // BOTTOM INFORMATION
+    // =========================================================
+
+    Row {
+
+        anchors.bottom:
+            parent.bottom
+
+        anchors.horizontalCenter:
+            parent.horizontalCenter
+
+        anchors.bottomMargin:
+            6
+
+        spacing:
+            20
+
+
+        Text {
+
+            text:
+                "R " +
+                rollAngle.toFixed(1) +
+                "°"
+
+            color:
+                "#D9F5FF"
+
+            font.pixelSize:
+                10
+
+            font.bold:
+                true
+        }
+
+
+        Text {
+
+            text:
+                "P " +
+                pitchAngle.toFixed(1) +
+                "°"
+
+            color:
+                "#D9F5FF"
+
+            font.pixelSize:
+                10
+
+            font.bold:
+                true
+        }
+    }
+}

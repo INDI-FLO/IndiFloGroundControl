@@ -1,0 +1,880 @@
+/****************************************************************************
+ *
+ * IndiFlo Ground Control
+ *
+ * Professional Circular Glass Artificial Horizon
+ *
+ ****************************************************************************/
+
+import QtQuick
+
+import QGroundControl
+import QGroundControl.Controls
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
+
+
+Item {
+    id: root
+
+    /*
+     * 65% of the previous 300 x 330 design
+     */
+    width: 195
+    height: 215
+
+    property bool collapsed: false
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+
+    // ============================================================
+    // LIVE ROLL
+    // ============================================================
+
+    property real rollAngle: {
+        if (!_activeVehicle)
+            return 0
+
+        var value = _activeVehicle.roll.rawValue
+
+        if (isNaN(value))
+            return 0
+
+        return value
+    }
+
+
+    // ============================================================
+    // LIVE PITCH
+    // ============================================================
+
+    property real pitchAngle: {
+        if (!_activeVehicle)
+            return 0
+
+        var value = _activeVehicle.pitch.rawValue
+
+        if (isNaN(value))
+            return 0
+
+        return value
+    }
+
+
+    // ============================================================
+    // SLIDING PANEL
+    // ============================================================
+
+    Item {
+        id: slidingPanel
+
+        width: root.width
+        height: root.height
+
+        x: root.collapsed
+           ? -(root.width - 30)
+           : 0
+
+        Behavior on x {
+            NumberAnimation {
+                duration: 350
+                easing.type: Easing.InOutCubic
+            }
+        }
+
+
+        // ========================================================
+        // GLASS BACKGROUND
+        // ========================================================
+
+        Rectangle {
+            id: glassBackground
+
+            anchors.fill: parent
+
+            radius: 15
+
+            color: "#120B151C"
+
+            border.width: 1
+
+            border.color: "#35FFFFFF"
+
+            antialiasing: true
+        }
+
+
+        // ========================================================
+        // INNER GLASS
+        // ========================================================
+
+        Rectangle {
+            anchors.fill: parent
+
+            anchors.margins: 2
+
+            radius: 13
+
+            color: "#03000000"
+
+            border.width: 1
+
+            border.color: "#18FFFFFF"
+
+            antialiasing: true
+        }
+
+
+        // ========================================================
+        // TITLE
+        // ========================================================
+
+        Rectangle {
+            id: titleBackground
+
+            x: 8
+
+            y: 5
+
+            width: parent.width - 16
+
+            height: 22
+
+            radius: 7
+
+            color: "#24131D25"
+
+            border.width: 1
+
+            border.color: "#25FFFFFF"
+        }
+
+
+        Text {
+            anchors.centerIn:
+                titleBackground
+
+            text: "ARTIFICIAL HORIZON"
+
+            color: "#F4F8FA"
+
+            font.pixelSize: 7
+
+            font.bold: true
+        }
+
+
+        Text {
+            anchors.right:
+                titleBackground.right
+
+            anchors.rightMargin: 7
+
+            anchors.verticalCenter:
+                titleBackground.verticalCenter
+
+            text: "AH"
+
+            color: "#82DFFF"
+
+            font.pixelSize: 7
+
+            font.bold: true
+        }
+
+
+        // ========================================================
+        // CIRCULAR HORIZON AREA
+        // ========================================================
+
+        Item {
+            id: horizonArea
+
+            x: 17
+
+            y: 31
+
+            width: 161
+
+            height: 161
+
+            clip: true
+
+
+            // ====================================================
+            // DARK CIRCLE
+            // ====================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: width / 2
+
+                color: "#081018"
+
+                border.width: 1
+
+                border.color: "#65FFFFFF"
+
+                antialiasing: true
+            }
+
+
+            // ====================================================
+            // LIVE ARTIFICIAL HORIZON
+            // ====================================================
+
+            Canvas {
+                id: horizonCanvas
+
+                anchors.fill: parent
+
+                antialiasing: true
+
+
+                /*
+                 * IMPORTANT:
+                 *
+                 * Canvas does not reliably repaint just because
+                 * a QML property used by onPaint changed.
+                 *
+                 * Therefore requestPaint() is explicitly called
+                 * below whenever pitch or roll changes.
+                 */
+
+
+                onPaint: {
+
+                    var ctx = getContext("2d")
+
+                    ctx.reset()
+
+
+                    var w = width
+                    var h = height
+
+                    var cx = w / 2
+                    var cy = h / 2
+
+                    var pitchPixels =
+                        root.pitchAngle * 3.2
+
+
+                    // =================================================
+                    // CIRCULAR CLIP
+                    // =================================================
+
+                    ctx.save()
+
+                    ctx.beginPath()
+
+                    ctx.arc(
+                        cx,
+                        cy,
+                        Math.min(w, h) / 2 - 1,
+                        0,
+                        Math.PI * 2
+                    )
+
+                    ctx.clip()
+
+
+                    // =================================================
+                    // MOVE TO CENTER
+                    // =================================================
+
+                    ctx.translate(cx, cy)
+
+
+                    // =================================================
+                    // ROLL
+                    // =================================================
+
+                    ctx.rotate(
+                        -root.rollAngle *
+                        Math.PI /
+                        180
+                    )
+
+
+                    // =================================================
+                    // PITCH
+                    // =================================================
+
+                    ctx.translate(
+                        0,
+                        pitchPixels
+                    )
+
+
+                    // =================================================
+                    // SKY
+                    // =================================================
+
+                    ctx.fillStyle =
+                        "#286487"
+
+                    ctx.fillRect(
+                        -w * 2,
+                        -h * 2,
+                        w * 4,
+                        h * 2
+                    )
+
+
+                    // =================================================
+                    // GROUND
+                    // =================================================
+
+                    ctx.fillStyle =
+                        "#594B3A"
+
+                    ctx.fillRect(
+                        -w * 2,
+                        0,
+                        w * 4,
+                        h * 2
+                    )
+
+
+                    // =================================================
+                    // HORIZON LINE
+                    // =================================================
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(
+                        -w * 2,
+                        0
+                    )
+
+                    ctx.lineTo(
+                        w * 2,
+                        0
+                    )
+
+                    ctx.lineWidth = 1.5
+
+                    ctx.strokeStyle =
+                        "#FFFFFF"
+
+                    ctx.stroke()
+
+
+                    // =================================================
+                    // PITCH LADDER
+                    // =================================================
+
+                    for (
+                        var pitch = -30;
+                        pitch <= 30;
+                        pitch += 5
+                    ) {
+
+                        if (pitch === 0)
+                            continue
+
+
+                        var py =
+                            -pitch * 3.2
+
+
+                        var major =
+                            Math.abs(pitch) % 10 === 0
+
+
+                        var lineLength =
+                            major ? 48 : 27
+
+
+                        // ---------------------------------------------
+                        // PITCH LINE
+                        // ---------------------------------------------
+
+                        ctx.beginPath()
+
+                        ctx.moveTo(
+                            -lineLength / 2,
+                            py
+                        )
+
+                        ctx.lineTo(
+                            lineLength / 2,
+                            py
+                        )
+
+                        ctx.lineWidth =
+                            major ? 1.5 : 1
+
+                        ctx.strokeStyle =
+                            "#F4F7FA"
+
+                        ctx.stroke()
+
+
+                        // ---------------------------------------------
+                        // PITCH NUMBERS
+                        // ---------------------------------------------
+
+                        if (major) {
+
+                            ctx.font =
+                                "bold 7px sans-serif"
+
+                            ctx.fillStyle =
+                                "#FFFFFF"
+
+                            ctx.textAlign =
+                                "center"
+
+                            ctx.textBaseline =
+                                "middle"
+
+
+                            ctx.fillText(
+                                Math.abs(pitch).toString(),
+                                -lineLength / 2 - 9,
+                                py
+                            )
+
+
+                            ctx.fillText(
+                                Math.abs(pitch).toString(),
+                                lineLength / 2 + 9,
+                                py
+                            )
+                        }
+                    }
+
+
+                    ctx.restore()
+                }
+            }
+
+
+            // ====================================================
+            // GLASS OVERLAY
+            // ====================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: width / 2
+
+                color: "#03FFFFFF"
+
+                border.width: 1
+
+                border.color: "#35FFFFFF"
+
+                antialiasing: true
+            }
+
+
+            // ====================================================
+            // INNER CIRCLE
+            // ====================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                anchors.margins: 12
+
+                radius: width / 2
+
+                color: "transparent"
+
+                border.width: 1
+
+                border.color: "#25FFFFFF"
+
+                antialiasing: true
+            }
+
+
+            // ====================================================
+            // ROLL SCALE
+            // ====================================================
+
+            Canvas {
+                id: rollScale
+
+                anchors.fill: parent
+
+                antialiasing: true
+
+
+                onPaint: {
+
+                    var ctx =
+                        getContext("2d")
+
+                    ctx.reset()
+
+
+                    var cx =
+                        width / 2
+
+                    var cy =
+                        height / 2
+
+
+                    var radius =
+                        width / 2 - 6
+
+
+                    // =================================================
+                    // ROLL TICKS
+                    // =================================================
+
+                    for (
+                        var angle = -60;
+                        angle <= 60;
+                        angle += 10
+                    ) {
+
+                        var radians =
+                            angle *
+                            Math.PI /
+                            180
+
+
+                        var outerX =
+                            cx +
+                            Math.sin(radians) *
+                            radius
+
+
+                        var outerY =
+                            cy -
+                            Math.cos(radians) *
+                            radius
+
+
+                        var tickLength =
+                            angle % 30 === 0
+                                ? 9
+                                : 5
+
+
+                        var innerRadius =
+                            radius -
+                            tickLength
+
+
+                        var innerX =
+                            cx +
+                            Math.sin(radians) *
+                            innerRadius
+
+
+                        var innerY =
+                            cy -
+                            Math.cos(radians) *
+                            innerRadius
+
+
+                        ctx.beginPath()
+
+                        ctx.moveTo(
+                            innerX,
+                            innerY
+                        )
+
+                        ctx.lineTo(
+                            outerX,
+                            outerY
+                        )
+
+                        ctx.lineWidth =
+                            angle % 30 === 0
+                                ? 1.5
+                                : 1
+
+                        ctx.strokeStyle =
+                            "#F2F7FA"
+
+                        ctx.stroke()
+                    }
+
+
+                    // =================================================
+                    // ROLL POINTER
+                    // =================================================
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(
+                        cx,
+                        5
+                    )
+
+                    ctx.lineTo(
+                        cx - 6,
+                        17
+                    )
+
+                    ctx.lineTo(
+                        cx + 6,
+                        17
+                    )
+
+                    ctx.closePath()
+
+                    ctx.fillStyle =
+                        "#FFD447"
+
+                    ctx.fill()
+
+
+                    ctx.lineWidth = 1
+
+                    ctx.strokeStyle =
+                        "#FFFFFF"
+
+                    ctx.stroke()
+                }
+            }
+
+
+            // ====================================================
+            // AIRCRAFT REFERENCE
+            // ====================================================
+
+            Item {
+                id: aircraft
+
+                anchors.centerIn:
+                    parent
+
+                width: 82
+
+                height: 38
+
+
+                // LEFT WING
+
+                Rectangle {
+                    x: 2
+
+                    y: 18
+
+                    width: 29
+
+                    height: 3
+
+                    radius: 1.5
+
+                    color: "#FFD447"
+                }
+
+
+                // RIGHT WING
+
+                Rectangle {
+                    x: 51
+
+                    y: 18
+
+                    width: 29
+
+                    height: 3
+
+                    radius: 1.5
+
+                    color: "#FFD447"
+                }
+
+
+                // CENTER
+
+                Rectangle {
+                    anchors.centerIn:
+                        parent
+
+                    width: 8
+
+                    height: 8
+
+                    radius: 4
+
+                    color: "#FFD447"
+
+                    border.width: 1
+
+                    border.color: "#FFFFFF"
+                }
+
+
+                // NOSE
+
+                Rectangle {
+                    anchors.horizontalCenter:
+                        parent.horizontalCenter
+
+                    y: 20
+
+                    width: 3
+
+                    height: 10
+
+                    radius: 1.5
+
+                    color: "#FFD447"
+                }
+            }
+        }
+
+
+        // ========================================================
+        // ROLL/PITCH DATA
+        // ========================================================
+
+        Rectangle {
+            id: dataPanel
+
+            x: 45
+
+            y: 194
+
+            width: 105
+
+            height: 17
+
+            radius: 6
+
+            color: "#22131D25"
+
+            border.width: 1
+
+            border.color: "#25FFFFFF"
+
+
+            Row {
+                anchors.centerIn:
+                    parent
+
+                spacing: 11
+
+
+                Text {
+                    text:
+                        "R " +
+                        root.rollAngle.toFixed(1) +
+                        "°"
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 7
+
+                    font.bold: true
+                }
+
+
+                Text {
+                    text:
+                        "P " +
+                        root.pitchAngle.toFixed(1) +
+                        "°"
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 7
+
+                    font.bold: true
+                }
+            }
+        }
+
+
+        // ========================================================
+        // COLLAPSE HANDLE
+        // ========================================================
+
+        Rectangle {
+            id: collapseHandle
+
+            anchors.right:
+                parent.right
+
+            anchors.verticalCenter:
+                horizonArea.verticalCenter
+
+            width: 25
+
+            height: 48
+
+            radius: 8
+
+            color: "#28131D25"
+
+            border.width: 1
+
+            border.color: "#45FFFFFF"
+
+
+            Text {
+                anchors.centerIn:
+                    parent
+
+                text:
+                    root.collapsed
+                        ? "›"
+                        : "‹"
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 18
+
+                font.bold: true
+            }
+
+
+            MouseArea {
+                anchors.fill:
+                    parent
+
+                cursorShape:
+                    Qt.PointingHandCursor
+
+                onClicked: {
+
+                    root.collapsed =
+                        !root.collapsed
+                }
+            }
+        }
+    }
+
+
+    // ============================================================
+    // IMPORTANT CANVAS REFRESH
+    // ============================================================
+
+    Connections {
+        target: root
+
+        function onPitchAngleChanged() {
+            horizonCanvas.requestPaint()
+        }
+
+        function onRollAngleChanged() {
+            horizonCanvas.requestPaint()
+            rollScale.requestPaint()
+        }
+    }
+
+
+    // ============================================================
+    // INITIAL PAINT
+    // ============================================================
+
+    Component.onCompleted: {
+
+        horizonCanvas.requestPaint()
+
+        rollScale.requestPaint()
+    }
+}

@@ -1,0 +1,1003 @@
+/****************************************************************************
+ *
+ * IndiFlo Ground Control
+ *
+ * Professional Transparent Glass Flight Instrument
+ *
+ ****************************************************************************/
+
+import QtQuick
+import QGroundControl
+
+Item {
+    id: root
+
+    /*
+     * Compact professional layout
+     * Approximately 70% of the previous instrument size.
+     */
+    width: 245
+    height: 470
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+    // ---------------------------------------------------------------------
+    // LIVE ATTITUDE
+    // ---------------------------------------------------------------------
+
+    property real rollAngle: {
+        if (!_activeVehicle || !_activeVehicle.roll)
+            return 0
+
+        var v = _activeVehicle.roll.rawValue
+        return isNaN(v) ? 0 : v
+    }
+
+    property real pitchAngle: {
+        if (!_activeVehicle || !_activeVehicle.pitch)
+            return 0
+
+        var v = _activeVehicle.pitch.rawValue
+        return isNaN(v) ? 0 : v
+    }
+
+    // ---------------------------------------------------------------------
+    // LIVE YAW / HEADING
+    // ---------------------------------------------------------------------
+
+    property real yawAngle: {
+        if (!_activeVehicle || !_activeVehicle.heading)
+            return 0
+
+        var v = _activeVehicle.heading.rawValue
+
+        if (isNaN(v))
+            return 0
+
+        while (v < 0)
+            v += 360
+
+        while (v >= 360)
+            v -= 360
+
+        return v
+    }
+
+    // ---------------------------------------------------------------------
+    // GLASS PANEL
+    // ---------------------------------------------------------------------
+
+    Rectangle {
+        id: glassPanel
+
+        anchors.fill: parent
+
+        radius: 18
+
+        color: "#10000000"
+
+        border.width: 1
+        border.color: "#55FFFFFF"
+
+        antialiasing: true
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+
+        radius: 16
+
+        color: "#05000000"
+
+        border.width: 1
+        border.color: "#20FFFFFF"
+
+        antialiasing: true
+    }
+
+    // ---------------------------------------------------------------------
+    // HEADER
+    // ---------------------------------------------------------------------
+
+    Rectangle {
+        id: header
+
+        x: 8
+        y: 8
+
+        width: parent.width - 16
+        height: 38
+
+        radius: 10
+
+        color: "#16000000"
+
+        border.width: 1
+        border.color: "#35FFFFFF"
+    }
+
+    Text {
+        anchors.centerIn: header
+
+        text: "ARTIFICIAL HORIZON"
+
+        color: "#F4F7FA"
+
+        font.pixelSize: 12
+        font.bold: true
+    }
+
+    Text {
+        anchors.right: header.right
+        anchors.rightMargin: 10
+
+        anchors.verticalCenter: header.verticalCenter
+
+        text: "AH"
+
+        color: "#35BFFF"
+
+        font.pixelSize: 13
+        font.bold: true
+    }
+
+    // =====================================================================
+    // ARTIFICIAL HORIZON
+    // =====================================================================
+
+    Item {
+        id: horizon
+
+        width: 205
+        height: 205
+
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: 57
+
+        Canvas {
+            id: horizonCanvas
+
+            anchors.fill: parent
+
+            antialiasing: true
+
+            onPaint: {
+
+                var ctx = getContext("2d")
+
+                ctx.reset()
+
+                var w = width
+                var h = height
+
+                var cx = w / 2
+                var cy = h / 2
+
+                var radius = Math.min(w, h) / 2 - 4
+
+                // ---------------------------------------------------------
+                // OUTER TRANSPARENT CIRCLE
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.beginPath()
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2)
+                ctx.clip()
+
+                // ---------------------------------------------------------
+                // ATTITUDE TRANSFORMATION
+                // ---------------------------------------------------------
+
+                ctx.translate(cx, cy)
+
+                ctx.rotate(
+                    root.rollAngle * Math.PI / 180.0
+                )
+
+                /*
+                 * Approximate PX4/QGC pitch scale.
+                 * Positive pitch moves horizon downward.
+                 */
+                var pitchPixels =
+                    root.pitchAngle * 3.0
+
+                ctx.translate(
+                    0,
+                    pitchPixels
+                )
+
+                // ---------------------------------------------------------
+                // SKY
+                // ---------------------------------------------------------
+
+                ctx.fillStyle = "#165E91"
+
+                ctx.fillRect(
+                    -radius * 2,
+                    -radius * 2,
+                    radius * 4,
+                    radius * 2
+                )
+
+                // ---------------------------------------------------------
+                // GROUND
+                // ---------------------------------------------------------
+
+                ctx.fillStyle = "#493B2C"
+
+                ctx.fillRect(
+                    -radius * 2,
+                    0,
+                    radius * 4,
+                    radius * 2
+                )
+
+                // ---------------------------------------------------------
+                // PITCH LADDER
+                // ---------------------------------------------------------
+
+                ctx.strokeStyle = "#E9EEF2"
+                ctx.fillStyle = "#F3F5F7"
+
+                ctx.lineWidth = 1.2
+
+                ctx.font = "12px sans-serif"
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+
+                var pitchValues = [
+                    -20,
+                    -10,
+                    10,
+                    20
+                ]
+
+                for (var i = 0;
+                     i < pitchValues.length;
+                     i++) {
+
+                    var p = pitchValues[i]
+
+                    var py =
+                        -p * 3.0
+
+                    var lineWidth =
+                        Math.abs(p) === 10
+                        ? 48
+                        : 64
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(
+                        -lineWidth / 2,
+                        py
+                    )
+
+                    ctx.lineTo(
+                        lineWidth / 2,
+                        py
+                    )
+
+                    ctx.stroke()
+
+                    ctx.fillText(
+                        Math.abs(p).toString(),
+                        -lineWidth / 2 - 14,
+                        py
+                    )
+
+                    ctx.fillText(
+                        Math.abs(p).toString(),
+                        lineWidth / 2 + 14,
+                        py
+                    )
+                }
+
+                // Small centre pitch line
+
+                ctx.beginPath()
+
+                ctx.moveTo(-25, 0)
+                ctx.lineTo(25, 0)
+
+                ctx.stroke()
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // OUTER CIRCLE
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.strokeStyle = "#CFE2EA"
+                ctx.lineWidth = 1
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    radius,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.stroke()
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // SECOND RING
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.strokeStyle = "#55FFFFFF"
+                ctx.lineWidth = 1
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    radius - 8,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.stroke()
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // CARDINAL / INTERCARDINAL DIRECTIONS
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                /*
+                 * The direction ring rotates with yaw.
+                 * This is what makes the compass/heading move.
+                 */
+                ctx.translate(cx, cy)
+
+                ctx.rotate(
+                    -root.yawAngle * Math.PI / 180.0
+                )
+
+                var directions = [
+                    { text: "N",  angle: 0 },
+                    { text: "NE", angle: 45 },
+                    { text: "E",  angle: 90 },
+                    { text: "SE", angle: 135 },
+                    { text: "S",  angle: 180 },
+                    { text: "SW", angle: 225 },
+                    { text: "W",  angle: 270 },
+                    { text: "NW", angle: 315 }
+                ]
+
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+
+                for (var d = 0;
+                     d < directions.length;
+                     d++) {
+
+                    var a =
+                        directions[d].angle *
+                        Math.PI / 180.0
+
+                    var tx =
+                        Math.sin(a) *
+                        (radius + 11)
+
+                    var ty =
+                        -Math.cos(a) *
+                        (radius + 11)
+
+                    ctx.fillStyle =
+                        directions[d].text === "N"
+                        ? "#FFFFFF"
+                        : "#E7EDF1"
+
+                    ctx.font =
+                        directions[d].text.length === 1
+                        ? "bold 15px sans-serif"
+                        : "bold 11px sans-serif"
+
+                    ctx.fillText(
+                        directions[d].text,
+                        tx,
+                        ty
+                    )
+                }
+
+                // ---------------------------------------------------------
+                // COMPASS TICKS
+                // ---------------------------------------------------------
+
+                for (var t = 0; t < 72; t++) {
+
+                    var tickAngle =
+                        t * 5 * Math.PI / 180.0
+
+                    var outerR = radius + 1
+
+                    var innerR =
+                        t % 9 === 0
+                        ? radius - 8
+                        : radius - 4
+
+                    var x1 =
+                        Math.sin(tickAngle) *
+                        innerR
+
+                    var y1 =
+                        -Math.cos(tickAngle) *
+                        innerR
+
+                    var x2 =
+                        Math.sin(tickAngle) *
+                        outerR
+
+                    var y2 =
+                        -Math.cos(tickAngle) *
+                        outerR
+
+                    ctx.strokeStyle =
+                        t % 9 === 0
+                        ? "#FFD23F"
+                        : "#DCE7EC"
+
+                    ctx.lineWidth =
+                        t % 9 === 0
+                        ? 2
+                        : 1
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(x1, y1)
+                    ctx.lineTo(x2, y2)
+
+                    ctx.stroke()
+                }
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // FIXED AIRCRAFT HEADING ARROW
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.translate(cx, cy)
+
+                ctx.fillStyle = "#FFD23F"
+
+                ctx.strokeStyle = "#FFFFFF"
+
+                ctx.lineWidth = 1
+
+                ctx.beginPath()
+
+                ctx.moveTo(0, -radius - 7)
+
+                ctx.lineTo(-7, -radius + 7)
+
+                ctx.lineTo(7, -radius + 7)
+
+                ctx.closePath()
+
+                ctx.fill()
+                ctx.stroke()
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // FIXED AIRCRAFT REFERENCE
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.translate(cx, cy)
+
+                ctx.strokeStyle = "#FFD23F"
+
+                ctx.lineWidth = 4
+
+                ctx.lineCap = "round"
+
+                ctx.beginPath()
+
+                ctx.moveTo(-25, 0)
+                ctx.lineTo(-7, 0)
+
+                ctx.moveTo(7, 0)
+                ctx.lineTo(25, 0)
+
+                ctx.stroke()
+
+                ctx.lineWidth = 2
+
+                ctx.beginPath()
+
+                ctx.moveTo(0, 0)
+                ctx.lineTo(0, 15)
+
+                ctx.stroke()
+
+                ctx.fillStyle = "#FFD23F"
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    0,
+                    0,
+                    5,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.fill()
+
+                ctx.restore()
+            }
+
+            Connections {
+                target: root
+
+                function onRollAngleChanged() {
+                    horizonCanvas.requestPaint()
+                }
+
+                function onPitchAngleChanged() {
+                    horizonCanvas.requestPaint()
+                }
+
+                function onYawAngleChanged() {
+                    horizonCanvas.requestPaint()
+                }
+            }
+        }
+    }
+
+    // =====================================================================
+    // YAW / HDG LABEL
+    // =====================================================================
+
+    Text {
+        id: yawTitle
+
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        y: 267
+
+        text: "YAW / HDG"
+
+        color: "#35BFFF"
+
+        font.pixelSize: 14
+        font.bold: true
+    }
+
+    // =====================================================================
+    // YAW COMPASS
+    // =====================================================================
+
+    Item {
+        id: compass
+
+        width: 155
+        height: 155
+
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        y: 288
+
+        Canvas {
+            id: compassCanvas
+
+            anchors.fill: parent
+
+            antialiasing: true
+
+            onPaint: {
+
+                var ctx = getContext("2d")
+
+                ctx.reset()
+
+                var cx = width / 2
+                var cy = height / 2
+
+                var r = 73
+
+                // ---------------------------------------------------------
+                // TRANSPARENT COMPASS FACE
+                // ---------------------------------------------------------
+
+                ctx.fillStyle = "#10000000"
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    r,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.fill()
+
+                // ---------------------------------------------------------
+                // OUTER RING
+                // ---------------------------------------------------------
+
+                ctx.strokeStyle = "#C9D8DF"
+
+                ctx.lineWidth = 1
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    r,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.stroke()
+
+                // ---------------------------------------------------------
+                // INNER RINGS
+                // ---------------------------------------------------------
+
+                ctx.strokeStyle = "#35FFFFFF"
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    r - 20,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.stroke()
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    r - 42,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.stroke()
+
+                // ---------------------------------------------------------
+                // ROTATING COMPASS
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.translate(cx, cy)
+
+                ctx.rotate(
+                    -root.yawAngle *
+                    Math.PI / 180.0
+                )
+
+                // ---------------------------------------------------------
+                // TICKS
+                // ---------------------------------------------------------
+
+                for (var i = 0; i < 72; i++) {
+
+                    var a =
+                        i * 5 *
+                        Math.PI / 180.0
+
+                    var outer =
+                        r - 1
+
+                    var inner =
+                        i % 9 === 0
+                        ? r - 10
+                        : r - 6
+
+                    var x1 =
+                        Math.sin(a) * inner
+
+                    var y1 =
+                        -Math.cos(a) * inner
+
+                    var x2 =
+                        Math.sin(a) * outer
+
+                    var y2 =
+                        -Math.cos(a) * outer
+
+                    ctx.strokeStyle =
+                        i % 9 === 0
+                        ? "#FFD23F"
+                        : "#D9E4E8"
+
+                    ctx.lineWidth =
+                        i % 9 === 0
+                        ? 2
+                        : 1
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(x1, y1)
+                    ctx.lineTo(x2, y2)
+
+                    ctx.stroke()
+                }
+
+                // ---------------------------------------------------------
+                // CARDINAL DIRECTIONS
+                // ---------------------------------------------------------
+
+                var dirs = [
+                    { name: "N", angle: 0 },
+                    { name: "E", angle: 90 },
+                    { name: "S", angle: 180 },
+                    { name: "W", angle: 270 }
+                ]
+
+                ctx.textAlign = "center"
+                ctx.textBaseline = "middle"
+
+                for (var n = 0;
+                     n < dirs.length;
+                     n++) {
+
+                    var da =
+                        dirs[n].angle *
+                        Math.PI / 180.0
+
+                    var dx =
+                        Math.sin(da) *
+                        (r - 19)
+
+                    var dy =
+                        -Math.cos(da) *
+                        (r - 19)
+
+                    ctx.fillStyle =
+                        dirs[n].name === "N"
+                        ? "#FF4545"
+                        : "#F1F5F7"
+
+                    ctx.font =
+                        "bold 13px sans-serif"
+
+                    ctx.fillText(
+                        dirs[n].name,
+                        dx,
+                        dy
+                    )
+                }
+
+                // ---------------------------------------------------------
+                // NUMERIC HEADINGS
+                // ---------------------------------------------------------
+
+                var headings = [
+                    { value: "030", angle: 30 },
+                    { value: "060", angle: 60 },
+                    { value: "120", angle: 120 },
+                    { value: "150", angle: 150 },
+                    { value: "210", angle: 210 },
+                    { value: "240", angle: 240 },
+                    { value: "300", angle: 300 },
+                    { value: "330", angle: 330 }
+                ]
+
+                ctx.font = "9px sans-serif"
+
+                ctx.fillStyle = "#DDE6EA"
+
+                for (var h = 0;
+                     h < headings.length;
+                     h++) {
+
+                    var ha =
+                        headings[h].angle *
+                        Math.PI / 180.0
+
+                    var hx =
+                        Math.sin(ha) *
+                        (r - 33)
+
+                    var hy =
+                        -Math.cos(ha) *
+                        (r - 33)
+
+                    ctx.fillText(
+                        headings[h].value,
+                        hx,
+                        hy
+                    )
+                }
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // FIXED HEADING ARROW
+                // ---------------------------------------------------------
+
+                ctx.save()
+
+                ctx.translate(cx, cy)
+
+                ctx.fillStyle = "#FFD23F"
+
+                ctx.strokeStyle = "#FFFFFF"
+
+                ctx.lineWidth = 1
+
+                ctx.beginPath()
+
+                ctx.moveTo(0, -r + 8)
+
+                ctx.lineTo(-6, -r + 20)
+
+                ctx.lineTo(6, -r + 20)
+
+                ctx.closePath()
+
+                ctx.fill()
+                ctx.stroke()
+
+                ctx.restore()
+
+                // ---------------------------------------------------------
+                // CENTRE DOT
+                // ---------------------------------------------------------
+
+                ctx.fillStyle = "#FFD23F"
+
+                ctx.beginPath()
+
+                ctx.arc(
+                    cx,
+                    cy,
+                    4,
+                    0,
+                    Math.PI * 2
+                )
+
+                ctx.fill()
+            }
+
+            Connections {
+                target: root
+
+                function onYawAngleChanged() {
+                    compassCanvas.requestPaint()
+                }
+            }
+        }
+    }
+
+    // =====================================================================
+    // YAW VALUE
+    // =====================================================================
+
+    Rectangle {
+        id: yawValueBox
+
+        width: 82
+        height: 24
+
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        y: 420
+
+        radius: 12
+
+        color: "#10000000"
+
+        border.width: 1
+        border.color: "#35FFFFFF"
+
+        Text {
+            anchors.centerIn: parent
+
+            text: Math.round(root.yawAngle) + "°"
+
+            color: "#FFD23F"
+
+            font.pixelSize: 14
+            font.bold: true
+        }
+    }
+
+    // =====================================================================
+    // ROLL / PITCH / YAW
+    // =====================================================================
+
+    Rectangle {
+        id: rpyBox
+
+        x: 10
+
+        y: 445
+
+        width: parent.width - 20
+
+        height: 20
+
+        radius: 8
+
+        color: "#10000000"
+
+        border.width: 1
+        border.color: "#35FFFFFF"
+    }
+
+    Row {
+        anchors.centerIn: rpyBox
+
+        spacing: 12
+
+        Text {
+            text: "R  " +
+                  root.rollAngle.toFixed(1) + "°"
+
+            color: "#FFD23F"
+
+            font.pixelSize: 10
+            font.bold: true
+        }
+
+        Text {
+            text: "P  " +
+                  root.pitchAngle.toFixed(1) + "°"
+
+            color: "#35BFFF"
+
+            font.pixelSize: 10
+            font.bold: true
+        }
+
+        Text {
+            text: "Y  " +
+                  root.yawAngle.toFixed(1) + "°"
+
+            color: "#F2F4F5"
+
+            font.pixelSize: 10
+            font.bold: true
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // REDRAW TIMER
+    // ---------------------------------------------------------------------
+
+    Timer {
+        interval: 100
+        running: true
+        repeat: true
+
+        onTriggered: {
+
+            horizonCanvas.requestPaint()
+
+            compassCanvas.requestPaint()
+        }
+    }
+}

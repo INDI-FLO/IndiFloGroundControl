@@ -1,0 +1,1220 @@
+/****************************************************************************
+ *
+ * IndiFlo Ground Control
+ *
+ * IndiFlo Glass Flight Instrument
+ *
+ * Artificial Horizon + Heading/Yaw Compass
+ *
+ ****************************************************************************/
+
+import QtQuick
+import QGroundControl
+
+
+Item {
+    id: root
+
+    /*
+     * Main panel dimensions.
+     *
+     * The panel is intentionally transparent so the map remains visible
+     * behind the instruments.
+     */
+    width: 300
+    height: 610
+
+    property bool collapsed: false
+
+    property var _activeVehicle:
+        QGroundControl.multiVehicleManager.activeVehicle
+
+
+    // =====================================================================
+    // LIVE ATTITUDE
+    // =====================================================================
+
+    property real rollAngle: {
+        if (!_activeVehicle)
+            return 0
+
+        var v = _activeVehicle.roll.rawValue
+
+        return isNaN(v) ? 0 : v
+    }
+
+    property real pitchAngle: {
+        if (!_activeVehicle)
+            return 0
+
+        var v = _activeVehicle.pitch.rawValue
+
+        return isNaN(v) ? 0 : v
+    }
+
+
+    // =====================================================================
+    // LIVE YAW / HEADING
+    // =====================================================================
+
+    property real yawAngle: {
+        if (!_activeVehicle)
+            return 0
+
+        /*
+         * QGroundControl exposes vehicle heading in degrees.
+         */
+        var v = _activeVehicle.heading.rawValue
+
+        return isNaN(v) ? 0 : v
+    }
+
+
+    // =====================================================================
+    // COLLAPSIBLE PANEL
+    // =====================================================================
+
+    Item {
+        id: panel
+
+        width: root.width
+        height: root.height
+
+        x: root.collapsed
+           ? -(root.width - 34)
+           : 0
+
+        Behavior on x {
+            NumberAnimation {
+                duration: 300
+                easing.type: Easing.InOutCubic
+            }
+        }
+
+
+        // =================================================================
+        // GLASS PANEL
+        // =================================================================
+
+        Rectangle {
+            id: glass
+
+            anchors.fill: parent
+
+            radius: 20
+
+            /*
+             * Almost completely transparent.
+             * Only enough alpha remains to create the glass effect.
+             */
+            color: "#12000000"
+
+            border.width: 1
+
+            border.color: "#55FFFFFF"
+
+            antialiasing: true
+        }
+
+
+        Rectangle {
+            anchors.fill: parent
+
+            anchors.margins: 2
+
+            radius: 18
+
+            color: "#05000000"
+
+            border.width: 1
+
+            border.color: "#20FFFFFF"
+
+            antialiasing: true
+        }
+
+
+        // =================================================================
+        // TITLE
+        // =================================================================
+
+        Text {
+            id: title
+
+            anchors.top: parent.top
+
+            anchors.topMargin: 12
+
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            text: "ARTIFICIAL HORIZON"
+
+            color: "#F4F4F4"
+
+            font.pixelSize: 18
+
+            font.bold: true
+        }
+
+
+        Text {
+            anchors.right: parent.right
+
+            anchors.rightMargin: 22
+
+            anchors.top: parent.top
+
+            anchors.topMargin: 15
+
+            text: "AH"
+
+            color: "#FFFFFF"
+
+            font.pixelSize: 12
+
+            font.bold: true
+        }
+
+
+        Rectangle {
+            x: 15
+
+            y: 45
+
+            width: parent.width - 30
+
+            height: 1
+
+            color: "#50FFFFFF"
+        }
+
+
+        // =================================================================
+        // ARTIFICIAL HORIZON
+        // =================================================================
+
+        Item {
+            id: horizon
+
+            width: 250
+            height: 250
+
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            anchors.top: parent.top
+
+            anchors.topMargin: 57
+
+
+            // =============================================================
+            // CIRCULAR CLIPPING
+            // =============================================================
+
+            Rectangle {
+                id: horizonMask
+
+                anchors.fill: parent
+
+                radius: width / 2
+
+                color: "transparent"
+
+                border.width: 1
+
+                border.color: "#BFFFFFFF"
+
+                clip: true
+
+
+                // =========================================================
+                // MOVING ATTITUDE SCENE
+                // =========================================================
+
+                Item {
+                    id: attitudeScene
+
+                    width: parent.width * 2.2
+
+                    height: parent.height * 2.2
+
+                    x: (parent.width - width) / 2
+
+                    y: (parent.height - height) / 2
+
+                    /*
+                     * Pitch moves the horizon vertically.
+                     */
+                    property real pitchOffset:
+                        pitchAngle * 3.0
+
+                    /*
+                     * Roll rotates the complete attitude scene.
+                     */
+                    rotation: -rollAngle
+
+                    transformOrigin: Item.Center
+
+
+                    // =====================================================
+                    // SKY
+                    // =====================================================
+
+                    Rectangle {
+                        id: sky
+
+                        width: parent.width
+
+                        height: parent.height / 2
+
+                        x: 0
+
+                        y: parent.height / 2
+                           - horizon.height / 2
+                           + attitudeScene.pitchOffset
+
+                        color: "#17629A"
+                    }
+
+
+                    // =====================================================
+                    // GROUND
+                    // =====================================================
+
+                    Rectangle {
+                        width: parent.width
+
+                        height: parent.height / 2
+
+                        x: 0
+
+                        y: parent.height / 2
+                           + attitudeScene.pitchOffset
+
+                        color: "#4E4439"
+                    }
+
+
+                    // =====================================================
+                    // HORIZON LINE
+                    // =====================================================
+
+                    Rectangle {
+                        width: parent.width
+
+                        height: 2
+
+                        x: 0
+
+                        y: parent.height / 2
+                           + attitudeScene.pitchOffset
+
+                        color: "#FFFFFF"
+                    }
+
+
+                    // =====================================================
+                    // PITCH 10 / 20 MARKINGS
+                    // =====================================================
+
+                    Repeater {
+                        model: 9
+
+                        delegate: Item {
+
+                            property int pitchIndex: index - 4
+
+                            property real pitchValue:
+                                pitchIndex * 5
+
+                            width: 180
+
+                            height: 2
+
+                            x: (attitudeScene.width - width) / 2
+
+                            y: attitudeScene.height / 2
+                               + attitudeScene.pitchOffset
+                               - pitchValue * 3.0
+
+                            visible: pitchValue !== 0
+
+                            Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+
+                                width: Math.abs(parent.pitchValue) % 10 === 0
+                                       ? 95
+                                       : 55
+
+                                height: 2
+
+                                color: "#E8FFFFFF"
+                            }
+
+                            Text {
+                                anchors.right: parent.horizontalCenter
+
+                                anchors.rightMargin: 52
+
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                text: Math.abs(parent.pitchValue)
+
+                                color: "#FFFFFF"
+
+                                font.pixelSize: 11
+
+                                visible:
+                                    Math.abs(parent.pitchValue) % 10 === 0
+                            }
+
+                            Text {
+                                anchors.left: parent.horizontalCenter
+
+                                anchors.leftMargin: 52
+
+                                anchors.verticalCenter: parent.verticalCenter
+
+                                text: Math.abs(parent.pitchValue)
+
+                                color: "#FFFFFF"
+
+                                font.pixelSize: 11
+
+                                visible:
+                                    Math.abs(parent.pitchValue) % 10 === 0
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            // =============================================================
+            // OUTER ROLL RING
+            // =============================================================
+
+            Canvas {
+                id: rollRing
+
+                anchors.fill: parent
+
+                onPaint: {
+
+                    var ctx = getContext("2d")
+
+                    ctx.reset()
+
+                    var cx = width / 2
+                    var cy = height / 2
+                    var r = width / 2 - 8
+
+                    ctx.strokeStyle = "#DFFFFFFF"
+                    ctx.lineWidth = 1
+
+                    ctx.beginPath()
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+                    ctx.stroke()
+
+                    /*
+                     * Roll scale.
+                     */
+                    for (var i = -60; i <= 60; i += 5) {
+
+                        var a = (i - 90) * Math.PI / 180
+
+                        var outerR = r
+                        var innerR = r - (i % 10 === 0 ? 12 : 7)
+
+                        var x1 = cx + Math.cos(a) * innerR
+                        var y1 = cy + Math.sin(a) * innerR
+
+                        var x2 = cx + Math.cos(a) * outerR
+                        var y2 = cy + Math.sin(a) * outerR
+
+                        ctx.beginPath()
+                        ctx.moveTo(x1, y1)
+                        ctx.lineTo(x2, y2)
+                        ctx.stroke()
+                    }
+                }
+
+                Component.onCompleted: requestPaint()
+            }
+
+
+            // =============================================================
+            // CARDINAL DIRECTIONS AROUND HORIZON
+            // =============================================================
+
+            Item {
+                anchors.fill: parent
+
+                rotation: -rollAngle
+
+                transformOrigin: Item.Center
+
+
+                Text {
+                    text: "N"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    y: -5
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 22
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "NE"
+
+                    x: parent.width * 0.77
+
+                    y: 20
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 16
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "E"
+
+                    x: parent.width - 3
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 22
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "SE"
+
+                    x: parent.width * 0.77
+
+                    y: parent.height - 40
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 16
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "S"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    y: parent.height - 25
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 22
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "SW"
+
+                    x: 8
+
+                    y: parent.height - 40
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 16
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "W"
+
+                    x: -2
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 22
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "NW"
+
+                    x: 8
+
+                    y: 20
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 16
+
+                    font.bold: true
+                }
+            }
+
+
+            // =============================================================
+            // FIXED AIRCRAFT REFERENCE
+            // =============================================================
+
+            Canvas {
+                anchors.fill: parent
+
+                onPaint: {
+
+                    var ctx = getContext("2d")
+
+                    ctx.reset()
+
+                    var cx = width / 2
+
+                    /*
+                     * Top aircraft pointer.
+                     */
+
+                    ctx.fillStyle = "#FFD43B"
+
+                    ctx.strokeStyle = "#FFFFFF"
+
+                    ctx.lineWidth = 1.5
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(cx, 18)
+
+                    ctx.lineTo(cx - 14, 42)
+
+                    ctx.lineTo(cx + 14, 42)
+
+                    ctx.closePath()
+
+                    ctx.fill()
+
+                    ctx.stroke()
+
+
+                    /*
+                     * Central aircraft reference.
+                     */
+
+                    ctx.strokeStyle = "#FFD43B"
+
+                    ctx.lineWidth = 5
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(cx - 50, height / 2)
+
+                    ctx.lineTo(cx - 12, height / 2)
+
+                    ctx.moveTo(cx + 12, height / 2)
+
+                    ctx.lineTo(cx + 50, height / 2)
+
+                    ctx.stroke()
+
+
+                    ctx.fillStyle = "#FFD43B"
+
+                    ctx.beginPath()
+
+                    ctx.arc(cx, height / 2, 7, 0, Math.PI * 2)
+
+                    ctx.fill()
+                }
+
+                Component.onCompleted: requestPaint()
+            }
+        }
+
+
+        // =================================================================
+        // HEADING / YAW
+        // =================================================================
+
+        Text {
+            anchors.top: horizon.bottom
+
+            anchors.topMargin: 5
+
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            text: "YAW / HDG"
+
+            color: "#FFFFFF"
+
+            font.pixelSize: 13
+
+            font.bold: true
+        }
+
+
+        Item {
+            id: compass
+
+            width: 210
+
+            height: 210
+
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            anchors.top: horizon.bottom
+
+            anchors.topMargin: 25
+
+
+            // =============================================================
+            // COMPASS GLASS CIRCLE
+            // =============================================================
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: width / 2
+
+                color: "#08000000"
+
+                border.width: 1
+
+                border.color: "#BFFFFFFF"
+
+                antialiasing: true
+            }
+
+
+            Rectangle {
+                anchors.fill: parent
+
+                anchors.margins: 14
+
+                radius: width / 2
+
+                color: "transparent"
+
+                border.width: 1
+
+                border.color: "#35FFFFFF"
+            }
+
+
+            Rectangle {
+                anchors.fill: parent
+
+                anchors.margins: 43
+
+                radius: width / 2
+
+                color: "transparent"
+
+                border.width: 1
+
+                border.color: "#25FFFFFF"
+            }
+
+
+            // =============================================================
+            // ROTATING COMPASS CARD
+            // =============================================================
+
+            Item {
+                id: compassCard
+
+                anchors.fill: parent
+
+                rotation: -yawAngle
+
+                transformOrigin: Item.Center
+
+
+                Canvas {
+                    anchors.fill: parent
+
+                    onPaint: {
+
+                        var ctx = getContext("2d")
+
+                        ctx.reset()
+
+                        var cx = width / 2
+                        var cy = height / 2
+
+                        var r = width / 2 - 7
+
+                        /*
+                         * 72 ticks = every 5 degrees.
+                         */
+
+                        for (var i = 0; i < 72; i++) {
+
+                            var deg = i * 5
+
+                            var a = (deg - 90) * Math.PI / 180
+
+                            var longTick =
+                                deg % 30 === 0
+
+                            var mediumTick =
+                                deg % 10 === 0
+
+                            var innerR =
+                                r - (longTick ? 15 :
+                                     mediumTick ? 11 : 7)
+
+                            var x1 =
+                                cx + Math.cos(a) * innerR
+
+                            var y1 =
+                                cy + Math.sin(a) * innerR
+
+                            var x2 =
+                                cx + Math.cos(a) * r
+
+                            var y2 =
+                                cy + Math.sin(a) * r
+
+                            ctx.strokeStyle =
+                                "#DFFFFFFF"
+
+                            ctx.lineWidth =
+                                longTick ? 2 : 1
+
+                            ctx.beginPath()
+
+                            ctx.moveTo(x1, y1)
+
+                            ctx.lineTo(x2, y2)
+
+                            ctx.stroke()
+                        }
+                    }
+
+                    Component.onCompleted: requestPaint()
+                }
+
+
+                // =========================================================
+                // CARDINAL DIRECTIONS
+                // =========================================================
+
+                Text {
+                    text: "N"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    y: 12
+
+                    color: "#FF5555"
+
+                    font.pixelSize: 20
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "E"
+
+                    x: parent.width - 27
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 20
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "S"
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    y: parent.height - 32
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 20
+
+                    font.bold: true
+                }
+
+                Text {
+                    text: "W"
+
+                    x: 10
+
+                    anchors.verticalCenter: parent.verticalCenter
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 20
+
+                    font.bold: true
+                }
+
+
+                // =========================================================
+                // DEGREE LABELS
+                // =========================================================
+
+                Text {
+                    text: "030"
+
+                    x: parent.width * 0.63
+
+                    y: 35
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "060"
+
+                    x: parent.width * 0.80
+
+                    y: 67
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "120"
+
+                    x: parent.width * 0.80
+
+                    y: parent.height - 82
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "150"
+
+                    x: parent.width * 0.63
+
+                    y: parent.height - 49
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "210"
+
+                    x: parent.width * 0.30
+
+                    y: parent.height - 49
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "240"
+
+                    x: parent.width * 0.13
+
+                    y: parent.height - 82
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "300"
+
+                    x: parent.width * 0.13
+
+                    y: 67
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+
+                Text {
+                    text: "330"
+
+                    x: parent.width * 0.30
+
+                    y: 35
+
+                    color: "#E8FFFFFF"
+
+                    font.pixelSize: 10
+                }
+            }
+
+
+            // =============================================================
+            // FIXED AIRCRAFT
+            // =============================================================
+
+            Canvas {
+                anchors.fill: parent
+
+                onPaint: {
+
+                    var ctx = getContext("2d")
+
+                    ctx.reset()
+
+                    var cx = width / 2
+                    var cy = height / 2
+
+                    /*
+                     * Yellow heading pointer.
+                     */
+
+                    ctx.strokeStyle = "#FFD000"
+
+                    ctx.lineWidth = 2
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(cx, 3)
+
+                    ctx.lineTo(cx, 20)
+
+                    ctx.stroke()
+
+
+                    /*
+                     * Aircraft silhouette.
+                     */
+
+                    ctx.strokeStyle = "#FFFFFF"
+
+                    ctx.lineWidth = 2
+
+                    ctx.beginPath()
+
+                    ctx.moveTo(cx, cy - 45)
+
+                    ctx.lineTo(cx, cy - 20)
+
+                    ctx.lineTo(cx + 35, cy - 5)
+
+                    ctx.lineTo(cx + 35, cy + 10)
+
+                    ctx.lineTo(cx + 8, cy + 3)
+
+                    ctx.lineTo(cx + 8, cy + 37)
+
+                    ctx.lineTo(cx + 20, cy + 43)
+
+                    ctx.lineTo(cx + 20, cy + 48)
+
+                    ctx.lineTo(cx, cy + 44)
+
+                    ctx.lineTo(cx - 20, cy + 48)
+
+                    ctx.lineTo(cx - 20, cy + 43)
+
+                    ctx.lineTo(cx - 8, cy + 37)
+
+                    ctx.lineTo(cx - 8, cy + 3)
+
+                    ctx.lineTo(cx - 35, cy + 10)
+
+                    ctx.lineTo(cx - 35, cy - 5)
+
+                    ctx.lineTo(cx, cy - 20)
+
+                    ctx.closePath()
+
+                    ctx.stroke()
+                }
+
+                Component.onCompleted: requestPaint()
+            }
+
+
+            // =============================================================
+            // HEADING VALUE
+            // =============================================================
+
+            Text {
+                anchors.horizontalCenter: parent.horizontalCenter
+
+                anchors.verticalCenter: parent.verticalCenter
+
+                anchors.verticalCenterOffset: 52
+
+                text: Math.round(
+                          ((yawAngle % 360) + 360) % 360
+                      ) + "°"
+
+                color: "#FFD43B"
+
+                font.pixelSize: 20
+
+                font.bold: true
+            }
+        }
+
+
+        // =================================================================
+        // LIVE R/P/Y DATA
+        // =================================================================
+
+        Rectangle {
+            id: valuesPanel
+
+            x: 25
+
+            width: parent.width - 50
+
+            height: 38
+
+            anchors.bottom: parent.bottom
+
+            anchors.bottomMargin: 15
+
+            radius: 12
+
+            color: "#08000000"
+
+            border.width: 1
+
+            border.color: "#45FFFFFF"
+
+
+            Row {
+                anchors.centerIn: parent
+
+                spacing: 17
+
+
+                Text {
+                    text: "R"
+
+                    color: "#FFD43B"
+
+                    font.bold: true
+
+                    font.pixelSize: 12
+                }
+
+                Text {
+                    text: rollAngle.toFixed(1) + "°"
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 12
+                }
+
+
+                Text {
+                    text: "P"
+
+                    color: "#4CC9FF"
+
+                    font.bold: true
+
+                    font.pixelSize: 12
+                }
+
+                Text {
+                    text: pitchAngle.toFixed(1) + "°"
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 12
+                }
+
+
+                Text {
+                    text: "Y"
+
+                    color: "#FFD43B"
+
+                    font.bold: true
+
+                    font.pixelSize: 12
+                }
+
+                Text {
+                    text: yawAngle.toFixed(1) + "°"
+
+                    color: "#FFFFFF"
+
+                    font.pixelSize: 12
+                }
+            }
+        }
+
+
+        // =================================================================
+        // COLLAPSE HANDLE
+        // =================================================================
+
+        Rectangle {
+            id: collapseHandle
+
+            width: 35
+
+            height: 90
+
+            x: parent.width - 1
+
+            anchors.verticalCenter: parent.verticalCenter
+
+            radius: 16
+
+            color: "#10000000"
+
+            border.width: 1
+
+            border.color: "#60FFFFFF"
+
+
+            Text {
+                anchors.centerIn: parent
+
+                text: root.collapsed ? ">" : "<"
+
+                color: "#FFFFFF"
+
+                font.pixelSize: 27
+
+                font.bold: true
+            }
+
+
+            MouseArea {
+                anchors.fill: parent
+
+                cursorShape: Qt.PointingHandCursor
+
+                onClicked: {
+                    root.collapsed = !root.collapsed
+                }
+            }
+        }
+    }
+}
