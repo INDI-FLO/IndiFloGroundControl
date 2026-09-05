@@ -144,7 +144,17 @@ ArtificialHorizon {
 }
 
 
+IndiFloMessageBox {
+    id: indiFloMessageBox
 
+    z: 200
+
+    anchors.top: parent.top
+    anchors.right: parent.right
+
+    anchors.topMargin: 200
+    anchors.rightMargin: 20
+}
 
 
 

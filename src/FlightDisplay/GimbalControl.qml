@@ -12,16 +12,14 @@ Rectangle {
     width: 180
     height: 235
 
-    // DARKER TRANSLUCENT GLASS
-    // 70% opaque black / 30% transparent
     color: "#B3000000"
 
     radius: 20
     clip: true
 
-    // ONLY ONE OUTER BORDER
     border.width: 1
     border.color: "#55FFFFFF"
+
 
     // =========================================================
     // ACTIVE VEHICLE
@@ -44,14 +42,14 @@ Rectangle {
 
 
     // =========================================================
-    // BUTTON STEP SETTINGS
+    // BUTTON SETTINGS
     // =========================================================
 
+    // Amount of command applied by each button press.
     property real buttonStepDegrees: 5.0
 
-    property int buttonCommandDuration: 150
-
-    property bool buttonCommandActive: false
+    // How long the gimbal movement command is maintained.
+    property int buttonCommandDuration: 300
 
 
     // =========================================================
@@ -61,12 +59,20 @@ Rectangle {
     function gimbalController() {
 
         if (!_activeVehicle) {
-            console.log("CUSTOM GIMBAL: no active vehicle")
+
+            console.log(
+                "CUSTOM GIMBAL: no active vehicle"
+            )
+
             return null
         }
 
         if (!_activeVehicle.gimbalController) {
-            console.log("CUSTOM GIMBAL: no gimbal controller")
+
+            console.log(
+                "CUSTOM GIMBAL: no gimbal controller"
+            )
+
             return null
         }
 
@@ -76,6 +82,13 @@ Rectangle {
 
     // =========================================================
     // NORMAL JOYSTICK COMMAND
+    //
+    // DO NOT CHANGE THIS LOGIC.
+    //
+    // LEFT  = negative pan
+    // RIGHT = positive pan
+    // UP    = positive tilt
+    // DOWN  = negative tilt
     // =========================================================
 
     function moveGimbal(pan, tilt) {
@@ -106,7 +119,7 @@ Rectangle {
 
 
     // =========================================================
-    // STOP JOYSTICK COMMAND
+    // STOP GIMBAL
     // =========================================================
 
     function stopGimbal() {
@@ -131,14 +144,20 @@ Rectangle {
 
 
     // =========================================================
-    // DISCRETE BUTTON COMMAND
+    // BUTTON COMMAND
+    //
+    // panDirection:
+    //
+    // LEFT  = -1
+    // RIGHT = +1
+    //
+    // tiltDirection:
+    //
+    // DOWN = -1
+    // UP   = +1
     // =========================================================
 
     function buttonStep(panDirection, tiltDirection) {
-
-        if (buttonCommandActive) {
-            return
-        }
 
         var controller = gimbalController()
 
@@ -146,15 +165,71 @@ Rectangle {
             return
         }
 
-        buttonCommandActive = true
+
+        // -----------------------------------------------------
+        // Stop any previous button timer.
+        //
+        // This prevents the previous command from interfering
+        // with the next button press.
+        // -----------------------------------------------------
+
+        if (buttonTimer.running) {
+            buttonTimer.stop()
+        }
+
+
+        // -----------------------------------------------------
+        // Make sure joystick is not holding another command.
+        // -----------------------------------------------------
+
+        root.joystickDragging = false
+
+
+        // -----------------------------------------------------
+        // DEBUG
+        // -----------------------------------------------------
 
         console.log(
-            "CUSTOM GIMBAL BUTTON STEP:",
-            buttonStepDegrees,
-            "degrees",
-            "pan =", panDirection,
-            "tilt =", tiltDirection
+            "========================================"
         )
+
+        console.log(
+            "CUSTOM GIMBAL BUTTON"
+        )
+
+        console.log(
+            "PAN:",
+            panDirection
+        )
+
+        console.log(
+            "TILT:",
+            tiltDirection
+        )
+
+        console.log(
+            "DURATION:",
+            buttonCommandDuration
+        )
+
+        console.log(
+            "========================================"
+        )
+
+
+        // -----------------------------------------------------
+        // SEND COMMAND
+        //
+        // IMPORTANT:
+        //
+        // Do NOT swap LEFT/RIGHT here.
+        //
+        // LEFT  = -1
+        // RIGHT = +1
+        //
+        // UP    = +1
+        // DOWN  = -1
+        // -----------------------------------------------------
 
         controller.gimbalOnScreenControl(
             panDirection,
@@ -166,6 +241,11 @@ Rectangle {
             false,
             false
         )
+
+
+        // -----------------------------------------------------
+        // Start movement duration timer.
+        // -----------------------------------------------------
 
         buttonTimer.restart()
     }
@@ -184,15 +264,11 @@ Rectangle {
 
         onTriggered: {
 
-            root.stopGimbal()
-
-            root.buttonCommandActive = false
-
             console.log(
-                "CUSTOM GIMBAL BUTTON STEP COMPLETE:",
-                root.buttonStepDegrees,
-                "degrees"
+                "CUSTOM GIMBAL BUTTON: STOP"
             )
+
+            root.stopGimbal()
         }
     }
 
@@ -203,18 +279,35 @@ Rectangle {
 
     function moveJoystick(mouseX, mouseY) {
 
-        var centerX = circle.width / 2
-        var centerY = circle.height / 2
+        var centerX =
+            circle.width / 2
 
-        var dx = mouseX - centerX
-        var dy = mouseY - centerY
+        var centerY =
+            circle.height / 2
 
-        var distance = Math.sqrt(
-            dx * dx +
-            dy * dy
-        )
 
-        if (distance > root.stickDistance && distance > 0) {
+        var dx =
+            mouseX - centerX
+
+        var dy =
+            mouseY - centerY
+
+
+        var distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            )
+
+
+        // -----------------------------------------------------
+        // Limit joystick to stickDistance.
+        // -----------------------------------------------------
+
+        if (
+            distance > root.stickDistance &&
+            distance > 0
+        ) {
 
             dx =
                 dx / distance *
@@ -225,14 +318,27 @@ Rectangle {
                 root.stickDistance
         }
 
+
         root.stickX = dx
         root.stickY = dy
+
+
+        // -----------------------------------------------------
+        // Convert joystick position into normalized command.
+        //
+        // LEFT  = negative pan
+        // RIGHT = positive pan
+        //
+        // UP    = positive tilt
+        // DOWN  = negative tilt
+        // -----------------------------------------------------
 
         var panCommand =
             dx / root.stickDistance
 
         var tiltCommand =
             -(dy / root.stickDistance)
+
 
         root.moveGimbal(
             panCommand,
@@ -265,6 +371,7 @@ Rectangle {
         height: 32
 
         anchors.top: parent.top
+
         anchors.topMargin: 8
 
         anchors.horizontalCenter:
@@ -272,7 +379,6 @@ Rectangle {
 
         radius: 9
 
-        // DARKER TITLE BACKGROUND
         color: "#30000000"
 
         border.width: 1
@@ -313,7 +419,7 @@ Rectangle {
 
 
         // =====================================================
-        // OUTER GLASS JOYSTICK CIRCLE
+        // OUTER JOYSTICK CIRCLE
         // =====================================================
 
         Rectangle {
@@ -326,7 +432,6 @@ Rectangle {
 
             radius: width / 2
 
-            // DARKER JOYSTICK BACKGROUND
             color: "#30000000"
 
             border.width: 1
@@ -338,6 +443,7 @@ Rectangle {
             // =================================================
 
             Rectangle {
+
                 anchors.fill: parent
 
                 anchors.margins: 7
@@ -356,6 +462,7 @@ Rectangle {
             // =================================================
 
             Rectangle {
+
                 anchors.horizontalCenter:
                     parent.horizontalCenter
 
@@ -376,6 +483,7 @@ Rectangle {
             // =================================================
 
             Rectangle {
+
                 anchors.verticalCenter:
                     parent.verticalCenter
 
@@ -404,6 +512,7 @@ Rectangle {
 
                 preventStealing: true
 
+
                 onPressed: function(mouse) {
 
                     root.joystickDragging = true
@@ -414,7 +523,9 @@ Rectangle {
                     )
                 }
 
-                onPositionChanged: function(mouse) {
+
+                onPositionChanged:
+                    function(mouse) {
 
                     if (root.joystickDragging) {
 
@@ -425,12 +536,14 @@ Rectangle {
                     }
                 }
 
+
                 onReleased: {
 
                     root.joystickDragging = false
 
                     root.resetJoystick()
                 }
+
 
                 onCanceled: {
 
@@ -463,6 +576,7 @@ Rectangle {
 
             z: 5
 
+
             transform: Translate {
 
                 x: root.stickX
@@ -473,6 +587,7 @@ Rectangle {
             Behavior on x {
 
                 NumberAnimation {
+
                     duration:
                         root.joystickDragging
                         ? 0
@@ -484,6 +599,7 @@ Rectangle {
             Behavior on y {
 
                 NumberAnimation {
+
                     duration:
                         root.joystickDragging
                         ? 0
@@ -497,6 +613,7 @@ Rectangle {
             // =================================================
 
             Rectangle {
+
                 anchors.centerIn: parent
 
                 width: 12
@@ -513,6 +630,7 @@ Rectangle {
             // =================================================
 
             Rectangle {
+
                 anchors.fill: parent
 
                 anchors.margins: 4
@@ -587,7 +705,9 @@ Rectangle {
 
             onClicked: {
 
-                root.joystickDragging = false
+                console.log(
+                    "CUSTOM GIMBAL: UP BUTTON"
+                )
 
                 root.buttonStep(
                     0,
@@ -634,7 +754,8 @@ Rectangle {
                 border.color:
                     downButton.pressed
                     ? "#C0FFFFFF"
-                    : "#65FFFFFF"
+                    : "#65FFFFFF
+"
             }
 
 
@@ -657,7 +778,9 @@ Rectangle {
 
             onClicked: {
 
-                root.joystickDragging = false
+                console.log(
+                    "CUSTOM GIMBAL: DOWN BUTTON"
+                )
 
                 root.buttonStep(
                     0,
@@ -727,7 +850,9 @@ Rectangle {
 
             onClicked: {
 
-                root.joystickDragging = false
+                console.log(
+                    "CUSTOM GIMBAL: LEFT BUTTON"
+                )
 
                 root.buttonStep(
                     -1,
@@ -797,7 +922,9 @@ Rectangle {
 
             onClicked: {
 
-                root.joystickDragging = false
+                console.log(
+                    "CUSTOM GIMBAL: RIGHT BUTTON"
+                )
 
                 root.buttonStep(
                     1,
