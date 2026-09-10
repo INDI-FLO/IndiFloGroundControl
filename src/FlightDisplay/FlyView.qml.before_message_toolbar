@@ -80,24 +80,10 @@ Item {
     }
 
     FlyViewToolBar {
-
-        id: toolbar
-
-
-        visible: !QGroundControl.videoManager.fullScreen
-
-
-        z: 10
-    openMessageBox: function() {
-        indiFloMessageBox.forceVisible =
-            !indiFloMessageBox.forceVisible
-
-        if (indiFloMessageBox.forceVisible) {
-            indiFloMessageBox.expanded = true
-        }
+        id:         toolbar
+        visible:    !QGroundControl.videoManager.fullScreen
+        z: 100    
 }
-
-    }
 
 
 // ============================================================

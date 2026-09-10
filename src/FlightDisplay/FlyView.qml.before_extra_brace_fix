@@ -95,6 +95,7 @@ Item {
         if (indiFloMessageBox.forceVisible) {
             indiFloMessageBox.expanded = true
         }
+    }
 }
 
     }

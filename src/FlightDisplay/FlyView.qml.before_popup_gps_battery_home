@@ -87,15 +87,14 @@ Item {
         visible: !QGroundControl.videoManager.fullScreen
 
 
-        z: 10
-    openMessageBox: function() {
-        indiFloMessageBox.forceVisible =
-            !indiFloMessageBox.forceVisible
+        z: 100
 
-        if (indiFloMessageBox.forceVisible) {
+
+        openMessageBox: function() {
+
             indiFloMessageBox.expanded = true
+
         }
-}
 
     }
 

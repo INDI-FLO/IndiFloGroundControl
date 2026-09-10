@@ -276,16 +276,6 @@ property bool gimbalAvailable:
         !isNaN(activeBattery.percentRemaining.rawValue)
 
 
-    // Battery chemistry/type reported by MAVLink BATTERY_STATUS.
-    // QGroundControl exposes this as the battery "type" Fact.
-    property string batteryTypeText:
-        activeBattery &&
-        activeBattery.type &&
-        activeBattery.type.enumStringValue
-            ? activeBattery.type.enumStringValue
-            : "UNKNOWN"
-
-
     // =========================================================
     // COMMON PANEL COLORS
     // =========================================================
@@ -347,37 +337,55 @@ property bool gimbalAvailable:
         // HOME BUTTON
         // =====================================================
 
-Rectangle {
-    id: indiFloLogoPanel
+        Rectangle {
+            id: homePanel
 
-    Layout.fillHeight: true
-    Layout.preferredWidth: 64
+            Layout.fillHeight: true
+            Layout.preferredWidth: 64
 
-    radius: 6
+            radius: 6
 
-    color: "transparent"
+            color: "#160B1117"
 
-    border.width: 0
+            border.width: 1
+            border.color: "#35FFFFFF"
 
-    Image {
-        id: indiFloToolbarLogo
 
-        anchors.centerIn: parent
+            QGCToolBarButton {
+                id: homeButton
 
-        width: 48
-        height: 48
+                anchors.fill: parent
 
-        source: "/res/indifloLogo.png"
+                icon.source: "/res/indifloLogo.svg"
 
-        fillMode: Image.PreserveAspectFit
+                onClicked: {
+                    mainWindow.showFlyView()
+                }
 
-        smooth: true
-        mipmap: true
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Home")
+            }
 
-        sourceSize.width: 96
-        sourceSize.height: 96
-    }
-}
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: 6
+
+                color: "#FFFFFF"
+
+                opacity:
+                    homeButton.hovered
+                        ? 0.08
+                        : 0
+
+                visible:
+                    homeButton.hovered
+
+                z: 10
+            }
+        }
+
 
         // =====================================================
         // MODE
@@ -680,112 +688,111 @@ Popup {
         }
 
 
-          // =====================================================
-          // SATELLITES
-          // =====================================================
+        // =====================================================
+        // SATELLITES
+        // =====================================================
 
-          Rectangle {
-              id: satellitePanel
+        Rectangle {
+            id: satellitePanel
 
-              Layout.fillHeight: true
-              Layout.preferredWidth: 118
+            Layout.fillHeight: true
+            Layout.preferredWidth: 92
 
-              radius: 6
+            radius: 6
 
-              color: panelColor
+            color: panelColor
 
-              border.width: 1
-              border.color: panelBorder
-
-              Row {
-                  anchors.centerIn: parent
-
-                  spacing: 7
-
-                  // ---------------------------------------------
-                  // SIGNAL BARS
-                  // ---------------------------------------------
-
-                  Row {
-                      id: gpsBars
-
-                      anchors.verticalCenter: parent.verticalCenter
-
-                      spacing: 2
-
-                      height: 22
-
-                      Repeater {
-                          model: 5
-
-                          Rectangle {
-                              width: 5
-
-                              height:
-                                  gpsAvailable
-                                      ? 5 + (index * 4)
-                                      : 4
-
-                              anchors.bottom: parent.bottom
-
-                              radius: 2
-
-                              color:
-                                  gpsAvailable
-                                      ? "#42D8F2"
-                                      : "#5E676D"
-                          }
-                      }
-                  }
-
-                  // ---------------------------------------------
-                  // GPS INFORMATION
-                  // ---------------------------------------------
-
-                  Column {
-                      anchors.verticalCenter: parent.verticalCenter
-
-                      spacing: 1
-
-                      Text {
-                          text: "GPS"
-
-                          color: labelColor
-
-                          font.pixelSize: 8
-                          font.bold: true
-                      }
-
-                      Text {
-                          text:
-                              gpsAvailable
-                                  ? satelliteCount + " SAT"
-                                  : "-- SAT"
-
-                          color: valueColor
-
-                          font.pixelSize: 9
-                          font.bold: true
-                      }
-
-                      Text {
-                          text:
-                              gpsAvailable &&
-                              !isNaN(gpsHdop)
-                                  ? "HDOP " + gpsHdop.toFixed(1)
-                                  : "HDOP --"
-
-                          color: labelColor
-
-                          font.pixelSize: 7
-                      }
-                  }
-              }
-          }
+            border.width: 1
+            border.color: panelBorder
 
 
-          // =====================================================
-          // VEHICLE MESSAGES
+            Column {
+                anchors.centerIn: parent
+
+                spacing: 0
+
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text: "GPS"
+
+                    color: labelColor
+
+                    font.pixelSize: 8
+                    font.bold: true
+                }
+
+
+                Row {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    spacing: 2
+
+                    height: 18
+
+
+                    Repeater {
+                        model: 5
+
+
+                        Rectangle {
+                            width: 4
+
+                            height:
+                                gpsAvailable
+                                    ? 5 + (index * 3)
+                                    : 4
+
+                            anchors.bottom: parent.bottom
+
+                            radius: 2
+
+                            color:
+                                gpsAvailable
+                                    ? "#42D8F2"
+                                    : "#5E676D"
+                        }
+                    }
+                }
+
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text:
+                        gpsAvailable
+                            ? satelliteCount + " SAT"
+                            : "-- SAT"
+
+                    color: valueColor
+
+                    font.pixelSize: 7
+                    font.bold: true
+                }
+
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+
+                    text:
+                        gpsAvailable &&
+                        !isNaN(gpsHdop)
+
+                            ? "HDOP " + gpsHdop.toFixed(1)
+
+                            : "HDOP --"
+
+                    color: labelColor
+
+                    font.pixelSize: 7
+                }
+            }
+        }
+
+
+        // =====================================================
+        // VEHICLE MESSAGES
         // =====================================================
 
         Rectangle {

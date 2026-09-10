@@ -347,37 +347,55 @@ property bool gimbalAvailable:
         // HOME BUTTON
         // =====================================================
 
-Rectangle {
-    id: indiFloLogoPanel
+        Rectangle {
+            id: homePanel
 
-    Layout.fillHeight: true
-    Layout.preferredWidth: 64
+            Layout.fillHeight: true
+            Layout.preferredWidth: 64
 
-    radius: 6
+            radius: 6
 
-    color: "transparent"
+            color: "#160B1117"
 
-    border.width: 0
+            border.width: 1
+            border.color: "#35FFFFFF"
 
-    Image {
-        id: indiFloToolbarLogo
 
-        anchors.centerIn: parent
+            QGCToolBarButton {
+                id: homeButton
 
-        width: 48
-        height: 48
+                anchors.fill: parent
 
-        source: "/res/indifloLogo.png"
+                icon.source: "qrc:/res/indifloLogo.png"
 
-        fillMode: Image.PreserveAspectFit
+                onClicked: {
+                    mainWindow.showFlyView()
+                }
 
-        smooth: true
-        mipmap: true
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Home")
+            }
 
-        sourceSize.width: 96
-        sourceSize.height: 96
-    }
-}
+
+            Rectangle {
+                anchors.fill: parent
+
+                radius: 6
+
+                color: "#FFFFFF"
+
+                opacity:
+                    homeButton.hovered
+                        ? 0.08
+                        : 0
+
+                visible:
+                    homeButton.hovered
+
+                z: 10
+            }
+        }
+
 
         // =====================================================
         // MODE

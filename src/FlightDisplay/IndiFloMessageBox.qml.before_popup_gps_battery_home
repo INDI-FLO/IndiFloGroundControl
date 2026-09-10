@@ -66,10 +66,6 @@ Rectangle {
 
     property bool expanded: true
 
-    // Allows the toolbar message button to explicitly open
-    // the message window even when messageCount is currently 0.
-    property bool forceVisible: false
-
     property var _activeVehicle:
         QGroundControl.multiVehicleManager.activeVehicle
 
@@ -83,11 +79,6 @@ Rectangle {
         !_activeVehicle ||
         !_activeVehicle.formattedMessages ||
         _activeVehicle.formattedMessages.length === 0
-
-    // The popup is visible when:
-    // 1. There are vehicle messages, OR
-    // 2. The toolbar MESSAGE button explicitly opened it.
-    visible: forceVisible || messageCount > 0
 
     property int messageCount:
         _activeVehicle

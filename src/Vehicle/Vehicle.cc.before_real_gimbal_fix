@@ -403,105 +403,11 @@ void Vehicle::deleteCameraManager()
 
 void Vehicle::sendGimbalCommand(float pan, float tilt)
 {
-    if (!_gimbalController) {
-        qCWarning(VehicleLog)
-            << "IGC Gimbal: GimbalController is null";
-        return;
-    }
+    qDebug() << "IGC Gimbal Command:"
+             << "Pan:" << pan
+             << "Tilt:" << tilt;
 
-    if (!_gimbalController->activeGimbal()) {
-        qCWarning(VehicleLog)
-            << "IGC Gimbal: No active gimbal";
-        return;
-    }
-
-    // QML convention:
-    //
-    // pan  = yaw rate in degrees/second
-    // tilt = pitch rate in degrees/second
-    //
-    // GimbalController handles:
-    //   - gimbal control acquisition
-    //   - manager component ID
-    //   - gimbal device ID
-    //   - MAV_CMD_DO_GIMBAL_MANAGER_PITCHYAW
-    //   - periodic rate transmission
-    //
-    // GimbalController expects:
-    //   pitchRate, yawRate
-    _gimbalController->setManualRates(
-        tilt,
-        pan
-    );
-
-    qCDebug(VehicleLog)
-        << "IGC Gimbal MAVLink:"
-        << "yawRate =" << pan
-        << "pitchRate =" << tilt;
-}
-
-void Vehicle::sendGimbalStep(float panDegrees, float tiltDegrees)
-{
-    if (!_gimbalController) {
-        qCWarning(VehicleLog)
-            << "IGC Gimbal Step: GimbalController is null";
-        return;
-    }
-
-    Gimbal* gimbal = _gimbalController->activeGimbal();
-
-    if (!gimbal) {
-        qCWarning(VehicleLog)
-            << "IGC Gimbal Step: No active gimbal";
-        return;
-    }
-
-    // Current gimbal orientation.
-    float currentPitch =
-        gimbal->absolutePitch()->rawValue().toFloat();
-
-    float currentYaw =
-        gimbal->bodyYaw()->rawValue().toFloat();
-
-    if (qIsNaN(currentPitch)) {
-        currentPitch = 0.0f;
-    }
-
-    if (qIsNaN(currentYaw)) {
-        currentYaw = 0.0f;
-    }
-
-    // Apply requested incremental movement.
-    const float targetPitch =
-        currentPitch + tiltDegrees;
-
-    float targetYaw =
-        currentYaw + panDegrees;
-
-    // Keep body yaw in the normal MAVLink range.
-    while (targetYaw > 180.0f) {
-        targetYaw -= 360.0f;
-    }
-
-    while (targetYaw < -180.0f) {
-        targetYaw += 360.0f;
-    }
-
-    qCDebug(VehicleLog)
-        << "IGC Gimbal STEP:"
-        << "currentPitch =" << currentPitch
-        << "currentYaw =" << currentYaw
-        << "targetPitch =" << targetPitch
-        << "targetYaw =" << targetYaw;
-
-    // Existing QGC implementation sends:
-    // MAV_CMD_DO_GIMBAL_MANAGER_PITCHYAW
-    // with body-frame yaw.
-    _gimbalController->sendPitchBodyYaw(
-        targetPitch,
-        targetYaw,
-        true
-    );
+    // Gimbal MAVLink command implementation
 }
 
 void Vehicle::deleteGimbalController()
