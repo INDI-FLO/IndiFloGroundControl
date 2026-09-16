@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="PATH_TO_INDIFLO_LOGO" alt="IndiFloGroundControl Logo" width="200">
+  <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSTpSIjNpQCYgcHIoOwWXVXOZlZuqPFpwEQzbrWBGEGVw&s" alt="IndiFloGroundControl Logo" width="200">
 </p>
 
 <h1 align="center">IndiFloGroundControl</h1>
