@@ -34,7 +34,7 @@ IndiFloGroundControl
 
 
 
-# Verify Simulation
+## Verify Simulation
 
 
 Gazebo starts.
@@ -47,9 +47,9 @@ Control inputs work.
 Gimbal responds where configured.
 Gimbal Simulation
 
-The simulated gimbal can be used to test:
+## The simulated gimbal can be used to test:
 
-# Pan.
+Pan.
 Tilt.
 Joystick movement.
 Directional buttons.
@@ -58,7 +58,7 @@ Control response.
 Common Gazebo Problems
 PX4 Waits for Gazebo
 
-# Check:
+## Check:
 
 PX4 target.
 Gazebo installation.
@@ -67,3 +67,14 @@ Terminal messages.
 World or Model Not Found
 
 Verify that the requested simulation assets are available and that the selected PX4/Gazebo target references valid assets.
+
+Simulation Logs
+
+## When reporting a simulation problem, collect:
+
+PX4 terminal output.
+Gazebo terminal output.
+IndiFloGroundControl terminal output.
+Operating-system information.
+Exact command used.
+Approximate time the problem occurred.
