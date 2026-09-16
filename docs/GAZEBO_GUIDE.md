@@ -1,8 +1,4 @@
 
-
-# 7. GAZEBO_GUIDE.md
-
-
 # Gazebo Simulation Guide
 
 ## Overview
