@@ -24,5 +24,5 @@ IndiFlo-specific development includes application branding, flight-display custo
 
 ## Repository
 
-The primary development repository is:
+The primary development repository is: v1
 
