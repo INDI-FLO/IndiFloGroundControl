@@ -1,7 +1,3 @@
-
-# 8. CONTROLLER_GUIDE.md
-
-
 # Physical Controller Integration Guide
 
 ## Overview
