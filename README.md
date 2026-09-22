@@ -396,28 +396,81 @@ IndiFlo Private Limited is focused on UAV platforms, aerial technology, embedded
 
 # 📜 Upstream Project and Licensing
 
-IndiFloGroundControl is based on the **QGroundControl** project.
+IndiFloGroundControl (IGC) is an open-source ground control station project developed and maintained by **IndiFlo Private Limited**.
 
-QGroundControl provides the underlying open-source ground-control architecture on which IndiFloGroundControl is developed.
+IndiFloGroundControl is based on the open-source **QGroundControl** project and includes IndiFlo-specific modifications, additions, integrations, configuration, user-interface work, and documentation.
 
-IndiFloGroundControl contains IndiFlo-specific:
+### GNU General Public License v3
 
-- Branding
+IndiFloGroundControl is distributed under the **GNU General Public License version 3 (GPLv3)** to the extent applicable to IndiFlo-specific original work and GPLv3-covered portions of the project.
+
+The complete GNU GPLv3 license text is provided in:
+
+- [COPYING](COPYING)
+
+The official GNU GPLv3 license information is available from the Free Software Foundation:
+
+- https://www.gnu.org/licenses/gpl-3.0.html
+
+### QGroundControl
+
+IndiFloGroundControl is based on **QGroundControl**.
+
+QGroundControl provides the underlying open-source ground control architecture used by IndiFloGroundControl.
+
+Applicable QGroundControl copyright notices, license notices, attribution requirements, and contributor notices remain applicable to the portions of the software derived from or incorporating QGroundControl source code.
+
+QGroundControl project:
+
+- https://github.com/mavlink/qgroundcontrol
+
+QGroundControl documentation:
+
+- https://docs.qgroundcontrol.com/
+
+### IndiFlo-Specific Work
+
+IndiFloGroundControl contains IndiFlo-specific modifications and additions, including:
+
+- IndiFloGroundControl branding
+- Application identity and visual branding
 - User-interface modifications
-- Flight-display components
-- Gimbal functionality
-- Configuration changes
-- Documentation
-- UAV-development workflows
+- Custom flight-display components
+- Artificial horizon and flight instrumentation
+- Custom compass and telemetry presentation
+- Custom gimbal controls and integration
+- PX4 integration and configuration workflows
+- Gazebo simulation workflows
+- Controller and joystick workflows
+- IndiFlo-specific application configuration
+- Build and deployment workflows
+- IndiFlo-specific documentation and examples
 
-Please review the repository's licensing and attribution files before using or redistributing the software.
+IndiFlo-specific original modifications and additions are intended to be distributed under GPLv3 unless a specific file or component states otherwise.
 
-See:
+### Third-Party Software
 
-- [LICENSE](LICENSE)
-- [COPYING](COPYING.md)
+IndiFloGroundControl uses and/or interfaces with third-party software, libraries, frameworks, protocols, and tools.
 
----
+Third-party components remain subject to their respective licenses and copyright notices.
+
+Nothing in this project license section is intended to remove, replace, or modify an applicable third-party license.
+
+Users and distributors should preserve all applicable copyright notices, license notices, attribution requirements, and other legal notices.
+
+For additional information, see:
+
+- [NOTICE.md](NOTICE.md)
+- [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+- [COPYING](COPYING)
+
+### Copyright
+
+Copyright © 2026 **IndiFlo Private Limited**.
+
+QGroundControl and other third-party copyrights remain with their respective copyright holders.
+
+IndiFloGroundControl does not claim ownership of upstream or third-party code that is not original IndiFlo work.
 
 # ⚠️ Safety Notice
 
