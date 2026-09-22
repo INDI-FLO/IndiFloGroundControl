@@ -125,7 +125,7 @@ License questions should be resolved before merging material where possible.
 
 ## Contact
 
-For licensing, copyright, attribution, or contribution-related questions concerning IndiFloGroundControl, please contact the **TASNEEM RAZA**,##[tasneemr@indiflo.com]## through the official project communication channels.
+For licensing, copyright, attribution, or contribution-related questions concerning IndiFloGroundControl, please contact the **TASNEEM RAZA**,[tasneemr@indiflo.com] through the official project communication channels.
 
 For third-party or upstream components, contributors should also consult the licensing information and contact information provided by the respective copyright holder or upstream project.
 
