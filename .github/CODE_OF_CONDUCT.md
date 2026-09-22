@@ -1,46 +1,120 @@
-# Contributor Covenant Code of Conduct
+# IndiFloGroundControl Code of Conduct
 
 ## Our Pledge
 
-In the interest of fostering an open and welcoming environment, we as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, or sexual identity and orientation.
+In the interest of fostering an open, welcoming, inclusive, and professional community, we as contributors, maintainers, and participants of **IndiFloGroundControl (IGC)** pledge to make participation in the project and its community a harassment-free experience for everyone.
+
+We are committed to providing a respectful environment regardless of age, body size, disability, ethnicity, gender identity and expression, level of experience, nationality, personal appearance, race, religion, sexual identity and orientation, or any other personal characteristic.
+
+IndiFloGroundControl is developed as a professional ground control station project for unmanned aerial vehicle (UAV) and drone operations. All participants are expected to contribute in a manner that supports a constructive, technically focused, and professional project environment.
 
 ## Our Standards
 
-Examples of behavior that contributes to creating a positive environment include:
+Examples of behavior that contributes to a positive environment include:
 
-* Using welcoming and inclusive language
-* Being respectful of differing viewpoints and experiences
-* Gracefully accepting constructive criticism
-* Focusing on what is best for the community
-* Showing empathy towards other community members
+* Using welcoming, respectful, and inclusive language
+* Being respectful of differing viewpoints, technical approaches, and experiences
+* Accepting constructive criticism professionally
+* Providing useful and technically relevant feedback
+* Focusing discussions on improving the project and supporting its community
+* Showing consideration and empathy toward other community members
+* Respecting project guidelines, licenses, and intellectual property
+* Communicating professionally in issues, pull requests, discussions, documentation, and other project spaces
+* Giving appropriate credit to original authors and upstream projects
+* Reporting security, safety, or other sensitive issues through appropriate channels rather than publicly exposing potentially harmful information
 
-Examples of unacceptable behavior by participants include:
+## Unacceptable Behavior
 
-* The use of sexualized language or imagery and unwelcome sexual attention or advances
-* Trolling, insulting/derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or electronic address, without explicit permission
-* Other conduct which could reasonably be considered inappropriate in a professional setting
+Examples of unacceptable behavior include:
 
-## Our Responsibilities
+* Harassment, discrimination, intimidation, or personal attacks
+* Sexualized language, imagery, or unwelcome sexual attention or advances
+* Trolling, insulting, or derogatory comments
+* Personal attacks or hostile political arguments directed at individuals
+* Publishing or distributing another person's private or personally identifiable information without explicit permission
+* Threats of violence or other threatening behavior
+* Deliberately disrupting project discussions, development, testing, or collaboration
+* Knowingly submitting malicious, harmful, or intentionally disruptive code or configuration
+* Misrepresenting another person's work or intentionally removing appropriate attribution
+* Other conduct that could reasonably be considered inappropriate or unprofessional in a technical or professional environment
 
-Project maintainers are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to any instances of unacceptable behavior.
+## Project Responsibilities
 
-Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, or to ban temporarily or permanently any contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful.
+Project maintainers are responsible for clarifying the standards of acceptable behavior and are expected to take appropriate and fair corrective action in response to instances of unacceptable behavior.
+
+Maintainers may remove, edit, or reject comments, commits, code, documentation, wiki edits, issues, pull requests, or other contributions that do not comply with this Code of Conduct or applicable project policies.
+
+Depending on the circumstances, maintainers may temporarily or permanently restrict a participant's access to project resources or community spaces.
+
+Corrective actions will be considered based on the nature and severity of the reported conduct and the available information.
 
 ## Scope
 
-This Code of Conduct applies both within project spaces and in public spaces when an individual is representing the project or its community. Examples of representing a project or community include using an official project e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event. Representation of a project may be further defined and clarified by project maintainers.
+This Code of Conduct applies to all official **IndiFloGroundControl** project spaces and to public spaces where an individual is representing the project or its community.
+
+This includes, but is not limited to:
+
+* GitHub repositories and discussions
+* Issues and pull requests
+* Project documentation
+* Official project communication channels
+* Official project websites and social media channels
+* Project meetings and technical events
+* Conferences, demonstrations, or other events where an individual is representing IndiFloGroundControl
+* Other environments where conduct is directly connected to participation in the IndiFloGroundControl project or community
+
+Examples of representing the project include using an official project account or email address, acting as an appointed project representative, or participating in an event on behalf of IndiFloGroundControl.
+
+Project maintainers may further define the scope of project representation when necessary.
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at lm@qgroundcontrol.org. The project team will review and investigate all complaints, and will respond in a way that it deems appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident. Further details of specific enforcement policies may be posted separately.
+Instances of abusive, harassing, threatening, discriminatory, or otherwise unacceptable behavior should be reported to the **IndiFloGroundControl project team** through the project's designated official communication channel.
 
-Project maintainers who do not follow or enforce the Code of Conduct in good faith may face temporary or permanent repercussions as determined by other members of the project's leadership.
+For sensitive matters, reporters should avoid posting private or personally identifiable information in public GitHub issues or discussions.
+
+When submitting a report, provide as much relevant information as reasonably possible, including:
+
+* A description of the incident
+* The date and approximate time of the incident
+* The project space or location where it occurred
+* Relevant links or references
+* Any other information that may assist with reviewing the matter
+
+The project team will review reports and determine appropriate action based on the circumstances and available information.
+
+Reasonable efforts will be made to protect the confidentiality of the reporter and other individuals involved in an incident, subject to applicable requirements and the information necessary to investigate and address the matter.
+
+Project maintainers who fail to follow or enforce this Code of Conduct in good faith may be subject to corrective action determined by the project's leadership.
+
+## Security and Safety Concerns
+
+Security vulnerabilities, credentials, private information, and other sensitive technical issues should not be disclosed through public issues or discussions when public disclosure could create a security or safety risk.
+
+For security-related concerns, contributors should follow the security reporting procedure described in the project's security documentation, where available.
+
+For immediate safety concerns involving UAV operations or other physical systems, prioritize the safety of people and property and follow applicable operational procedures.
+
+## Relationship to the Upstream Project
+
+**IndiFloGroundControl (IGC)** is an independently maintained, modified ground control station project based on the open-source **QGroundControl** project.
+
+This Code of Conduct applies specifically to the **IndiFloGroundControl project and its community**.
+
+The existence of this Code of Conduct does not replace, modify, or claim to represent the policies of QGroundControl or any other upstream project.
+
+Where IndiFloGroundControl incorporates or derives material from upstream projects, the applicable upstream licenses, notices, attribution requirements, and project policies remain relevant.
 
 ## Attribution
 
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 1.4, available at [http://contributor-covenant.org/version/1/4][version]
+This Code of Conduct is based on principles established by the **Contributor Covenant** and has been adapted for the IndiFloGroundControl project.
 
-[homepage]: http://contributor-covenant.org
-[version]: http://contributor-covenant.org/version/1/4/
+Original Contributor Covenant:
+
+https://www.contributor-covenant.org/
+
+IndiFloGroundControl is a project of **IndiFlo Private Limited**.
+
+Copyright © 2026 IndiFlo Private Limited.
+
+All applicable third-party copyrights, licenses, and attribution notices remain with their respective owners.
