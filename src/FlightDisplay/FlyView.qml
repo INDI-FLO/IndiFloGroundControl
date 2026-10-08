@@ -133,23 +133,12 @@ ArtificialHorizon {
     width: 195
     height: 215
 
-    anchors.left: parent.left
-    anchors.top: parent.top
+    // Place the existing horizon immediately left of the IndiFlo compass.
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
 
-    anchors.leftMargin: 42
-
-    /*
-     * This places the horizon below:
-     *
-     * Takeoff/Land
-     * Return
-     * Pause/Actions
-     *
-     * Increase 155 if you want it lower.
-     */
-
-    anchors.topMargin:
-        toolbar.height + 155
+    anchors.rightMargin: 12
+    anchors.bottomMargin: 240
 
     z: 50
 
@@ -157,6 +146,26 @@ ArtificialHorizon {
         !QGroundControl.videoManager.fullScreen
 }
 
+
+// =============================================================
+// INDIFLO CUSTOM GLASS COMPASS
+// Bottom-right position, above the telemetry bar
+// =============================================================
+IndiFloCompass {
+    id: indiFloCompass
+
+    width: 130
+    height: 130
+
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    anchors.rightMargin: 22
+    anchors.bottomMargin: 88
+
+    z: 60
+
+    visible: false
+}
 
 IndiFloMessageBox {
     id: indiFloMessageBox
@@ -212,11 +221,12 @@ IndiFloMessageBox {
 
     visible: QGroundControl.settingsManager.flyViewSettings.showGimbalControl.rawValue
 
-    anchors.right: parent.right
+    // Position Gimbal Control on the left, above the video rectangle
+    anchors.left: parent.left
     anchors.bottom: parent.bottom
 
-    anchors.rightMargin: ScreenTools.defaultFontPixelWidth * 2
-    anchors.bottomMargin: ScreenTools.defaultFontPixelHeight * 10
+    anchors.leftMargin: 20
+    anchors.bottomMargin: 300
 
     z: QGroundControl.zOrderWidgets + 10
 }

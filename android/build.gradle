@@ -48,7 +48,7 @@ android {
      *******************************************************/
 
     // namespace = androidPackageName
-    namespace = "org.mavlink.qgroundcontrol"
+    namespace = "com.indiflo.groundcontrol"
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
     ndkVersion = androidNdkVersion
@@ -93,6 +93,7 @@ android {
     }
 
     defaultConfig {
+        applicationId "com.indiflo.groundcontrol"
         resConfig "en"
         minSdkVersion qtMinSdkVersion
         targetSdkVersion qtTargetSdkVersion

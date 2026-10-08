@@ -1,4 +1,5 @@
 package org.mavlink.qgroundcontrol;
+import com.indiflo.groundcontrol.BuildConfig;
 
 import android.util.Log;
 

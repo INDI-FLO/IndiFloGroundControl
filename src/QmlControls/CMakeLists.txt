@@ -86,6 +86,7 @@ qt_add_qml_module(QGroundControlControlsModule
         GlassPanel.qml
         HeightIndicator.qml
         HorizontalFactValueGrid.qml
+        IndiFloCompass.qml
         IndiFloGlassPanel.qml
         IndicatorButton.qml
         InstrumentValueEditDialog.qml

@@ -17,6 +17,7 @@ import QGroundControl.FlightMap
 
 Item {
     id:             control
+    visible:        false
     implicitWidth:  (compassRadius * 2) + attitudeSpacing + attitudeSize
     implicitHeight: implicitWidth
 
@@ -52,6 +53,7 @@ Item {
     }
 
     Rectangle {
+        visible: false
         y:      _totalAttitudeSize
         width:  compassRadius * 2
         height: width
@@ -59,6 +61,7 @@ Item {
         color:  qgcPal.window
 
         QGCCompassWidget {
+            visible:                    false
             size:                       parent.width - compassBorder
             vehicle:                    control.vehicle
             usedByMultipleVehicleList:  control.usedByMultipleVehicleList

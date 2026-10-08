@@ -275,15 +275,14 @@ property bool gimbalAvailable:
         activeBattery &&
         !isNaN(activeBattery.percentRemaining.rawValue)
 
+property var batteryTypeFact:
+    QGroundControl.settingsManager.appSettings.batteryType
 
-    // Battery chemistry/type reported by MAVLink BATTERY_STATUS.
-    // QGroundControl exposes this as the battery "type" Fact.
-    property string batteryTypeText:
-        activeBattery &&
-        activeBattery.type &&
-        activeBattery.type.enumStringValue
-            ? activeBattery.type.enumStringValue
-            : "UNKNOWN"
+property string batteryTypeText:
+    batteryTypeFact
+        ? batteryTypeFact.enumStringValue
+        : "LiPo"
+
 
 
     // =========================================================

@@ -8,6 +8,7 @@
  ****************************************************************************/
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 
 import QGroundControl
@@ -15,51 +16,150 @@ import QGroundControl.Controls
 import QGroundControl.Palette
 import QGroundControl.ScreenTools
 
-Rectangle {
-    color:          qgcPal.window
-    anchors.fill:   parent
+SettingsPage {
+    id: root
 
-    readonly property real _margins: ScreenTools.defaultFontPixelHeight
+    QGCPalette {
+        id: qgcPal
+    }
 
-    QGCPalette { id: qgcPal; colorGroupEnabled: true }
-
-    QGCFlickable {
-        anchors.margins:    _margins
-        anchors.fill:       parent
-        contentWidth:       grid.width
-        contentHeight:      grid.height
-        clip:               true
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: ScreenTools.defaultFontPixelWidth
+        spacing: ScreenTools.defaultFontPixelHeight
 
         GridLayout {
-            id:         grid
-            columns:    2
+            id: grid
+            columns: 2
+            columnSpacing: ScreenTools.defaultFontPixelWidth * 2
+            rowSpacing: ScreenTools.defaultFontPixelHeight
 
-            QGCLabel { text: qsTr("QGroundControl User Guide") }
+            // =========================================================
+            // IndiFlo Ground Control User Guide
+            // =========================================================
+
             QGCLabel {
-                linkColor:          qgcPal.text
-                text:               "<a href=\"https://docs.qgroundcontrol.com\">https://docs.qgroundcontrol.com</a>"
-                onLinkActivated:    (link) => Qt.openUrlExternally(link)
+                text: qsTr("IndiFlo Ground Control User Guide")
             }
 
-            QGCLabel { text: qsTr("PX4 Users Discussion Forum") }
-            QGCLabel {
-                linkColor:          qgcPal.text
-                text:               "<a href=\"http://discuss.px4.io/c/qgroundcontrol\">http://discuss.px4.io/c/qgroundcontrol</a>"
-                onLinkActivated:    (link) => Qt.openUrlExternally(link)
+            Rectangle {
+                Layout.fillWidth: true
+                height: ScreenTools.defaultFontPixelHeight * 1.5
+                color: "transparent"
+
+                QGCLabel {
+                    anchors.fill: parent
+                    text: qsTr("Open IndiFlo User Guide")
+                    color: qgcPal.text
+                    verticalAlignment: Text.AlignVCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            Qt.openUrlExternally(
+                                "https://github.com/INDI-FLO/IndiFloGroundControl/blob/v1/docs/USER_GUIDE.md"
+                            )
+                        }
+                    }
+                }
             }
 
-            QGCLabel { text: qsTr("ArduPilot Users Discussion Forum") }
+            // =========================================================
+            // IndiFlo PX4 Guide
+            // =========================================================
+
             QGCLabel {
-                linkColor:          qgcPal.text
-                text:               "<a href=\"https://discuss.ardupilot.org/c/ground-control-software/qgroundcontrol\">https://discuss.ardupilot.org/c/ground-control-software/qgroundcontrol</a>"
-                onLinkActivated:    (link) => Qt.openUrlExternally(link)
+                text: qsTr("IndiFlo PX4 Guide")
             }
 
-            QGCLabel { text: qsTr("QGroundControl Discord Channel") }
+            Rectangle {
+                Layout.fillWidth: true
+                height: ScreenTools.defaultFontPixelHeight * 1.5
+                color: "transparent"
+
+                QGCLabel {
+                    anchors.fill: parent
+                    text: qsTr("Open IndiFlo PX4 Guide")
+                    color: qgcPal.text
+                    verticalAlignment: Text.AlignVCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            Qt.openUrlExternally(
+                                "https://github.com/INDI-FLO/IndiFloGroundControl/blob/v1/docs/PX4_GUIDE.md"
+                            )
+                        }
+                    }
+                }
+            }
+
+            // =========================================================
+            // IndiFlo Gazebo Guide
+            // =========================================================
+
             QGCLabel {
-                linkColor:          qgcPal.text
-                text:               "<a href=\"https://discord.com/channels/1022170275984457759/1022185820683255908\">https://discord.com/channels/1022170275984457759/1022185820683255908</a>"
-                onLinkActivated:    (link) => Qt.openUrlExternally(link)
+                text: qsTr("IndiFlo Gazebo Guide")
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: ScreenTools.defaultFontPixelHeight * 1.5
+                color: "transparent"
+
+                QGCLabel {
+                    anchors.fill: parent
+                    text: qsTr("Open IndiFlo Gazebo Guide")
+                    color: qgcPal.text
+                    verticalAlignment: Text.AlignVCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            Qt.openUrlExternally(
+                                "https://github.com/INDI-FLO/IndiFloGroundControl/blob/v1/docs/GAZEBO_GUIDE.md"
+                            )
+                        }
+                    }
+                }
+            }
+
+            // =========================================================
+            // IndiFlo Documentation
+            // =========================================================
+
+            QGCLabel {
+                text: qsTr("IndiFlo Documentation")
+            }
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: ScreenTools.defaultFontPixelHeight * 1.5
+                color: "transparent"
+
+                QGCLabel {
+                    anchors.fill: parent
+                    text: qsTr("Open IndiFlo Documentation")
+                    color: qgcPal.text
+                    verticalAlignment: Text.AlignVCenter
+
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+
+                        onClicked: {
+                            Qt.openUrlExternally(
+                                "https://github.com/INDI-FLO/IndiFloGroundControl/blob/v1/docs/index.md"
+                            )
+                        }
+                    }
+                }
             }
         }
     }

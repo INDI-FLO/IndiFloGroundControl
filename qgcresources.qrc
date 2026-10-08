@@ -6,6 +6,7 @@
         <file alias="NanumGothic-Bold">resources/fonts/NanumGothic-Bold.ttf</file>
     </qresource>
     <qresource prefix="/res">
+        <file alias="general.svg">resources/general.svg</file>
         <file alias="home.svg">resources/home.svg</file>
         <file alias="indifloLogo.png">resources/indifloLogo.png</file>
         <file alias="indifloLogo.ico">resources/indifloLogo.ico</file>

@@ -70,6 +70,17 @@
     "max":              100
 },
 {
+    "name":             "batteryType",
+    "shortDescription": "Battery chemistry/type",
+    "longDescription":  "Select the battery chemistry used by the vehicle. This information is displayed in the Fly View battery indicator.",
+    "type":              "uint32",
+    "enumStrings":       "LiPo,Li-Ion,LiFePO4,LiHV,NiMH,Lead Acid,Other",
+    "enumValues":        "0,1,2,3,4,5,6",
+    "default":           0,
+    "label":             "Battery Type",
+    "keywords":          "battery,type,chemistry,lipo,li-ion,lifepo4,lihv,nimh,lead acid"
+},
+{
     "name":             "defaultMissionItemAltitude",
     "shortDesc": "Default value for altitude",
     "longDesc":  "This value specifies the default altitude for new items added to a mission.",
