@@ -23,6 +23,7 @@ import QGroundControl.Palette
 import QGroundControl.Controllers
 
 SettingsPage {
+property Fact _batteryType: _settingsManager.appSettings.batteryType
     property var    _settingsManager:                       QGroundControl.settingsManager
     property var    _flyViewSettings:                       _settingsManager.flyViewSettings
     property var    _mavlinkActionsSettings:                _settingsManager.mavlinkActionsSettings
@@ -64,6 +65,16 @@ SettingsPage {
             visible:            _useChecklist.visible && QGroundControl.corePlugin.options.preFlightChecklistUrl.toString().length
             property Fact _useChecklist:      _settingsManager.appSettings.useChecklist
         }
+
+LabelledFactComboBox {
+    Layout.fillWidth: true
+
+    label: qsTr("Battery Type")
+    fact: _batteryType
+    indexModel: false
+
+    visible: _batteryType.visible
+}
 
         FactCheckBoxSlider {
             Layout.fillWidth:   true

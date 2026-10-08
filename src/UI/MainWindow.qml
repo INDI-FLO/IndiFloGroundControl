@@ -310,12 +310,16 @@ ApplicationWindow {
         }
     }
 
-    function showToolSelectDialog() {
-        if (mainWindow.allowViewSwitch()) {
-            mainWindow.showIndicatorDrawer(toolSelectComponent, null)
-        }
+function showToolSelectDialog() {
+    if (mainWindow.allowViewSwitch()) {
+        mainWindow.showIndicatorDrawer(toolSelectComponent, null)
+        Qt.callLater(function() {
+            indicatorDrawer.x = mainWindow.contentItem.width
+                                         - indicatorDrawer.width
+                                         - indicatorDrawer._margins
+        })
     }
-
+}
     Component {
         id: toolSelectComponent
 
@@ -486,7 +490,11 @@ ApplicationWindow {
 
     Rectangle {
         id:             toolDrawer
-        anchors.fill:   parent
+ anchors.top:    parent.top
+    anchors.bottom: parent.bottom
+    anchors.right:  parent.right
+
+    width:          Math.min(parent.width * 0.42, 620)
         visible:        false
         color:          qgcPal.window
 
@@ -696,17 +704,36 @@ ApplicationWindow {
 
         property bool _expanded:    false
         property real _margins:     ScreenTools.defaultFontPixelHeight / 4
-
         function calcXPosition() {
             if (indicatorItem) {
-                var xCenter = indicatorItem.mapToItem(mainWindow.contentItem, indicatorItem.width / 2, 0).x
-                return Math.max(_margins, Math.min(xCenter - (contentItem.implicitWidth / 2), mainWindow.contentItem.width - contentItem.implicitWidth - _margins - (indicatorDrawer.padding * 2) - (ScreenTools.defaultFontPixelHeight / 2)))
-            } else {
-                return _margins
+                var xCenter = indicatorItem.mapToItem(
+                    mainWindow.contentItem,
+                    indicatorItem.width / 2,
+                    0
+                ).x
+
+                return Math.max(
+                    _margins,
+                    Math.min(
+                        xCenter - (contentItem.implicitWidth / 2),
+                        mainWindow.contentItem.width
+                            - contentItem.implicitWidth
+                            - _margins
+                            - (indicatorDrawer.padding * 2)
+                            - (ScreenTools.defaultFontPixelHeight / 2)
+                    )
+                )
             }
+
+            // No indicator item: open the tool-selection menu on the RIGHT.
+            return mainWindow.contentItem.width
+                   - contentItem.implicitWidth
+                   - _margins
+                   - (indicatorDrawer.padding * 2)
         }
 
-        onOpened: {
+        onOpened:
+ {
             _expanded                               = false;
             indicatorDrawerLoader.sourceComponent   = indicatorDrawer.sourceComponent
         }
