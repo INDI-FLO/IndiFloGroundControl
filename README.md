@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Release-v5.1.4-blue" alt="IndiFloGroundControl v5.1.4">
+  <img src="https://img.shields.io/badge/Release-v5.0.8-blue" alt="IndiFloGroundControl v5.0.8">
   <img src="https://img.shields.io/badge/PX4-Compatible-orange" alt="PX4">
   <img src="https://img.shields.io/badge/MAVLink-Compatible-green" alt="MAVLink">
   <img src="https://img.shields.io/badge/Qt-6.8.3-41CD52" alt="Qt 6.8.3">
